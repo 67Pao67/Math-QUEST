@@ -440,8 +440,8 @@ body{
     </div>
 
     <button class="sprout-play"
-        onclick="showScreen('sc-character')">
-  ▶ PLAY
+            onclick="startGame()">
+      ▶ PLAY
     </button>
 
     <button class="sprout-edit"
@@ -452,57 +452,6 @@ body{
     <div id="best-d">
       BEST: 0 PTS
     </div>
-
-  </div>
-
-</div>
-
-
-<!-- Character Select -->
-<div class="screen" id="sc-character">
-
-  <div class="menu-panel">
-
-    <div class="screen-title">
-      เลือกตัวละคร
-    </div>
-
-    <div style="margin:20px 0">
-
-<div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap">
-
-  <div id="pick-male"
-       style="cursor:pointer;border:4px solid #3aff3a;padding:10px;background:#222">
-
-    <img src="Male.png"
-         style="width:96px;height:96px;image-rendering:pixelated">
-
-    <div style="margin-top:8px;color:white;">
-    👦 ผู้ชาย
-    </div>
-
-  </div>
-
-  <div id="pick-female"
-       style="cursor:pointer;border:4px solid #555;padding:10px;background:#222">
-
-    <img src="Female.png"
-         style="width:96px;height:96px;image-rendering:pixelated">
-
-    <div style="margin-top:8px;color:white;">
-    👧 ผู้หญิง
-    </div>
-
-  </div>
-
-</div>
-
-    </div>
-
-    <button class="sprout-play"
-            onclick="startGame()">
-      ▶ เริ่มผจญภัย
-    </button>
 
   </div>
 
@@ -555,86 +504,37 @@ body{
 <script>
 // ========== QUESTIONS ==========
 let QS={
-easy:[
-  {q:"ข้อมูลดิบ คือข้อมูลที่ยังไม่ได้วิเคราะห์ (ถูก/ผิด)?",a:"ถูก"},
-  {q:"กลุ่มตัวอย่าง มีขนาดใหญ่กว่า ประชากร (ถูก/ผิด)?",a:"ผิด"},
-  {q:"สถิติศาสตร์ช่วยให้เราตัดสินใจเรื่องต่างๆ ได้แม่นยำขึ้น (ถูก/ผิด)?",a:"ถูก"},
-  {q:"ข้อมูลดิบที่ผ่านการประมวลผลแล้ว เรียกว่าอะไร?",a:"สารสนเทศ"},
-  {q:"ตัวย่อของส่วนเบี่ยงเบนมาตรฐานคือ?",a:"SD"},
-  {q:"การเปิดเผยข้อมูลที่ไม่ตรงกับความเป็นจริงเรียกว่าอะไร?",a:"ความคลาดเคลื่อน"},
-  {q:"การสำมะโน จัดทำขึ้นที่ไหน?",a:"สนง.สถิติแห่งชาติ"},
-  {q:"สถิติศาสตร์แบ่งออกเป็นกี่ขั้นตอน?",a:"4 ขั้นตอน"},
-  {q:"สถิติศาสตร์ หรือ ศาสตร์ 4 ขั้นตอน มีชื่อเรียกว่าอะไร?",a:"ระเบียบวิธีการทางสถิติ"},
-  {q:"ขั้นตอนที่ 1 ของสถิติศาสตร์คืออะไร?",a:"การเก็บรวบรวมข้อมูล"},
-  {q:"การคัดแยกและจำแนกประเภทข้อมูล เรียกขั้นตอนว่าอะไร?",a:"การนำเสนอข้อมูล"},
-  {q:"สถิติศาสตร์มีความจำเป็นต่อการวางแผนอนาคตของโรงเรียนเซนต์เทเรซา (ถูก/ผิด)?",a:"ถูก"},
-  {q:"ข้อมูลที่ยังไม่ได้นำมาจัดกลุ่มหรือคำนวณ เรียกว่าอะไร?",a:"ข้อมูลดิบ"},
-  {q:"ข้อมูลดิบที่ผ่านการประมวลผลแล้วเรียกว่าสารสนเทศ (ถูก/ผิด)?",a:"ถูก"},
-  {q:"ความผิดพลาดจากการกรอกคะแนนผิด เรียกว่าอะไร?",a:"ความคลาดเคลื่อน"},
-  {q:"เดินไปถามอายุครูเองกับปาก คือข้อมูลประเภทไหน?",a:"ปฐมภูมิ"},
-  {q:"จดบันทึกสถิติคนเดินเข้าห้องเรียนด้วยตัวเอง คือข้อมูลประเภทไหน?",a:"ปฐมภูมิ"},
-  {q:"นับจำนวนเงินทอนที่ได้จากร้านค้าด้วยตัวเอง คือข้อมูลประเภทไหน?",a:"ปฐมภูมิ"},
-  {q:"ลอกข้อมูลจากเว็บกูเกิลมาใช้ คือข้อมูลประเภทไหน?",a:"ทุติยภูมิ"},
-  {q:"แคปหน้าจอสรุปคะแนนสอบจากกลุ่มไลน์มาดู คือข้อมูลประเภทไหน?",a:"ทุติยภูมิ"},
-  {q:"คนไทยทุกคนในประเทศ เรียกว่าอะไร?",a:"ประชากร"},
-  {q:"นักเรียน ม.6 ทั้งระดับชั้น เรียกว่าอะไร?",a:"ประชากร"},
-  {q:"เมล็ดข้าวสารทั้งหมดในกระสอบ คืออะไร?",a:"ประชากร"},
-  {q:"สุ่มนับเงินในกระเป๋าเพื่อน 5 คนในห้อง เรียกว่าอะไร?",a:"กลุ่มตัวอย่าง"},
-  {q:"ครูดอนตักน้ำแกงในหม้อมาชิม 1 ช้อน ช้อนนี้คืออะไร?",a:"กลุ่มตัวอย่าง"},
-  {q:"นักเรียนโรงเรียนเซนต์เทเรซาทุกคน ตั้งแต่ประถมถึงมัธยม เรียกว่าอะไร?",a:"ประชากร"},
-  {q:"ครูดอนสุ่มเลือกนักเรียนเซนต์เทเรซา 10 คนเพื่อสัมภาษณ์ เรียกว่าอะไร?",a:"กลุ่มตัวอย่าง"},
-  {q:"ครูดอนส่งแบบสอบถามให้แฟนคลับใน TikTok ตอบด้วยตนเอง จัดเป็นข้อมูลประเภทไหน?",a:"ปฐมภูมิ"},
-  {q:"นักเรียนเซนต์เทเรซาดาวน์โหลดสถิติประชากรจากเว็บ สนง.สถิติแห่งชาติ จัดเป็นข้อมูลประเภทไหน?",a:"ทุติยภูมิ"},
-  {q:"ครูดอนจดบันทึกจำนวนนักเรียนที่มาสายด้วยตัวเองที่หน้าโรงเรียน จัดเป็นข้อมูลประเภทไหน?",a:"ปฐมภูมิ"}
-],
+  easy:[
+    {q:"ข้อมูลดิบ คือข้อมูลที่ยังไม่ได้วิเคราะห์ (ถูก/ผิด)?",a:"ถูก"},
+    {q:"กลุ่มตัวอย่าง มีขนาดใหญ่กว่า ประชากร (ถูก/ผิด)?",a:"ผิด"},
+    {q:"สถิติศาสตร์ช่วยให้เราตัดสินใจได้แม่นยำขึ้น (ถูก/ผิด)?",a:"ถูก"},
+    {q:"ข้อมูลดิบที่ผ่านการประมวลผลแล้ว เรียกว่าอะไร?",a:"สารสนเทศ"},
+    {q:"ตัวย่อของส่วนเบี่ยงเบนมาตรฐานคือ?",a:"SD"},
+    {q:"การเปิดเผยข้อมูลที่ไม่ตรงกับความเป็นจริงเรียกว่าอะไร?",a:"ความคลาดเคลื่อน"},
+    {q:"การสำมะโน จัดทำขึ้นที่ไหน?",a:"สนง.สถิติแห่งชาติ"},
+  ],
   mid:[
-  {q:"เกณฑ์การแบ่งประเภทของข้อมูลแบ่งออกเป็นกี่เกณฑ์?",a:"3 เกณฑ์"},
-  {q:'"กรุ๊ปเลือดครูดอน" คือข้อมูลเชิงอะไร?',a:"เชิงคุณภาพ"},
-  {q:'"ศาสนา" คือข้อมูลเชิงอะไร?',a:"เชิงคุณภาพ"},
-  {q:'"สีรถยนต์ครูดอน" คือข้อมูลเชิงอะไร?',a:"เชิงคุณภาพ"},
-  {q:'"คณะที่อยากเข้าเรียน" คือข้อมูลเชิงอะไร?',a:"เชิงคุณภาพ"},
-  {q:'"เลขที่บ้านครูดอน" คือข้อมูลเชิงอะไร?',a:"เชิงคุณภาพ"},
-  {q:"เบอร์โทรศัพท์เป็นข้อมูลเชิงอะไร?",a:"เชิงคุณภาพ"},
-  {q:"เลขบัตรประชาชน เป็นข้อมูลเชิงปริมาณ (ถูก/ผิด)?",a:"ผิด"},
-  {q:'"เลขทะเบียนบ้านครูดอน" สามารถนำมาบวกกันแล้วมีความหมาย (ถูก/ผิด)?',a:"ผิด"},
-  {q:'"เกรดเฉลี่ย (GPAX)" คือข้อมูลเชิงอะไร?',a:"เชิงปริมาณ"},
-  {q:'"น้ำหนักตัว" คือข้อมูลเชิงอะไร?',a:"เชิงปริมาณ"},
-  {q:'"ราคาของสินค้า" คือข้อมูลเชิงอะไร?',a:"เชิงปริมาณ"},
-  {q:'"ยอดไลก์บน TikTok/Youtube" คือข้อมูลเชิงอะไร?',a:"เชิงปริมาณ"},
-  {q:'"ความสูงของต้นไม้" คือข้อมูลเชิงอะไร?',a:"เชิงปริมาณ"},
-  {q:"แผนภาพกล่อง เป็นข้อมูลเชิงอะไร?",a:"เชิงปริมาณ"},
-  {q:'"หมายเลขห้องเรียน" ในโรงเรียนเซนต์เทเรซา คือข้อมูลเชิงอะไร?',a:"เชิงคุณภาพ"},
-  {q:'"จำนวนเงินค่าขนม" ที่นักเรียนได้รับมาโรงเรียน คือข้อมูลเชิงอะไร?',a:"เชิงปริมาณ"},
-  {q:'"ยี่ห้อโทรศัพท์มือถือ" ของครูดอน คือข้อมูลเชิงอะไร?',a:"เชิงคุณภาพ"},
-  {q:'"คะแนนสอบวิชาสถิติศาสตร์" ของนักเรียน คือข้อมูลเชิงอะไร?',a:"เชิงปริมาณ"},
-  {q:'ครูดอนเก็บข้อมูลยอดขายน้ำดื่มย้อนหลัง 5 ปี จัดเป็นข้อมูลอนุกรมเวลา (ถูก/ผิด)?',a:"ถูก"},
-  {q:"กราฟเส้นใช้ในการเปรียบเทียบข้อมูล (ถูก/ผิด)?",a:"ผิด"},
-  {q:"I กับ R เป็นข้อมูลเชิงอะไร?",a:"เชิงปริมาณ"},
-  {q:"ศึกษารายจ่ายของร้านค้าตลอดเดือนมกราคม เป็นข้อมูลประเภทใด?",a:"ข้อมูลอนุกรมเวลา"},
-  {q:"ข้อมูลที่บอกสถานะของสิ่งที่สนใจ ณ จุดหนึ่งของเวลา เป็นข้อมูลประเภทใด?",a:"ข้อมูลตัดขวาง"}
-],
-hard:[
-  {q:"กรุ๊ปเลือด จัดอยู่ในมาตรวัดระดับใด?",a:"นามบัญญัติ"},
-  {q:"อุณหภูมิ 0 องศา จัดอยู่ในมาตรวัดระดับใด?",a:"อันตรภาคชั้น"},
-  {q:"ค่าเฉลี่ย มัธยฐาน และฐานนิยม สถิติตัวใดใช้วิเคราะห์ข้อมูลเชิงคุณภาพ?",a:"ฐานนิยม"},
-  {q:"การวัดการกระจายข้อมูลแบบต่างกลุ่มเรียกว่าอะไร?",a:"สัมประสิทธิ์การแปรผัน"},
-  {q:"การวิเคราะห์ข้อมูลโดยใช้ทฤษฎีความน่าจะเป็น จัดเป็นสถิติศาสตร์เชิงอนุมานหรือเชิงพรรณนา?",a:"เชิงอนุมาน"},
-  {q:"ข้อมูลเชิงคุณภาพใช้การนำเสนอด้วยฮิสโทแกรม (ถูก/ผิด)?",a:"ผิด"},
-  {q:"เดไซล์ แบ่งข้อมูลออกเป็น 4 ส่วน 3 จุด ส่วนละ 25% (ถูก/ผิด)?",a:"ผิด"},
-  {q:"พิสัย ใช้วัดค่ากลางของข้อมูล (ถูก/ผิด)?",a:"ผิด"},
-  {q:"นามบัญญัติ ใช้เรียงลำดับ (ถูก/ผิด)?",a:"ผิด"},
-  {q:"คะแนนสอบ อยู่ในมาตรวัดระดับอัตราส่วน (Ratio) (ถูก/ผิด)?",a:"ผิด"},
-  {q:"ครูดอนต้องการเปรียบเทียบการกระจายคะแนนสอบที่มีค่าเฉลี่ยไม่เท่ากัน ควรใช้สถิติตัวใด?",a:"สัมประสิทธิ์การแปรผัน"},
-  {q:"ครูดอนสุ่มตัวอย่างนักเรียนโดยแบ่งตามสัดส่วนของแผนกประถมและมัธยม เรียกว่าการสุ่มแบบใด?",a:"การสุ่มตัวอย่างแบบแบ่งชั้นภูมิ"},
-  {q:"ยิ่งนักเรียนเล่นมือถือมาก เกรดเฉลี่ยยิ่งลดลง เป็นความสัมพันธ์แบบใด?",a:"สหสัมพันธ์เชิงลบ"},
-  {q:"สุ่มนักเรียนมา 50 คนเพื่อทดสอบว่าคะแนนเฉลี่ยสูงกว่าระดับประเทศหรือไม่ จัดเป็นสถิติประเภทใด?",a:"สถิติเชิงอนุมาน"},
-  {q:"แบบประเมินความพึงพอใจ (มากที่สุด ถึง น้อยที่สุด) อยู่ในมาตรวัดระดับใด?",a:"เรียงอันดับ"},
-  {q:"เก็บข้อมูลเงินออมของนักเรียนกลุ่มเดิมต่อเนื่องตั้งแต่ ม.1 ถึง ม.6 จัดเป็นข้อมูลประเภทใด?",a:"ข้อมูลแผง"},
-  {q:"สิ่งที่มาตรวัดระดับอัตราส่วน (Ratio) มี แต่มาตรวัดระดับอันตรภาค (Interval) ไม่มีคืออะไร?",a:"ศูนย์แท้"},
-  {q:"คะแนนสอบมีค่าสูงหรือต่ำผิดปกติ (Outlier) ควรเลือกใช้ค่ากลางชนิดใด?",a:"มัธยฐาน"},
-  {q:"ค่าความแปรปรวน (Variance) มีหน่วยเป็นอย่างไร?",a:"หน่วยยกกำลังสอง"},
-  {q:"แจกแบบสอบถามเฉพาะนักเรียนที่เดินผ่านหน้าห้องพักครู เป็นการสุ่มแบบใช้ความน่าจะเป็นหรือไม่?",a:"ไม่เป็น"}
-]
+    {q:"เดินไปถามอายุครูเองกับปาก คือข้อมูลประเภทไหน?",a:"ปฐมภูมิ"},
+    {q:"จดบันทึกสถิติคนเดินเข้าห้องเรียนด้วยตัวเอง คือข้อมูลประเภทไหน?",a:"ปฐมภูมิ"},
+    {q:"ลอกข้อมูลจากเว็บกูเกิลมาใช้ คือข้อมูลประเภทไหน?",a:"ทุติยภูมิ"},
+    {q:"แคปหน้าจอสรุปคะแนนจากกลุ่มไลน์มาดู คือข้อมูลประเภทไหน?",a:"ทุติยภูมิ"},
+    {q:"คนไทยทุกคนในประเทศ เรียกว่าอะไร?",a:"ประชากร"},
+    {q:"นักเรียน ม.6 ทั้งระดับชั้น เรียกว่าอะไร?",a:"ประชากร"},
+    {q:"สุ่มนับเงินในกระเป๋าเพื่อน 5 คน เรียกว่าอะไร?",a:"กลุ่มตัวอย่าง"},
+    {q:"ครูดอนตักน้ำแกงมาชิม 1 ช้อน ช้อนนี้คืออะไร?",a:"กลุ่มตัวอย่าง"},
+  ],
+  hard:[
+    {q:'เกณฑ์การแบ่งประเภทของข้อมูลมีกี่เกณฑ์?',a:"3"},
+    {q:'"กรุ๊ปเลือดครูดอน" คือข้อมูลเชิงอะไร?',a:"คุณภาพ"},
+    {q:'"ศาสนา" คือข้อมูลเชิงอะไร?',a:"คุณภาพ"},
+    {q:'"เลขที่บ้านครูดอน" คือข้อมูลเชิงอะไร?',a:"คุณภาพ"},
+    {q:"เลขบัตรประชาชน เป็นข้อมูลเชิงปริมาณ (ถูก/ผิด)?",a:"ผิด"},
+    {q:'"เกรดเฉลี่ย (GPAX)" คือข้อมูลเชิงอะไร?',a:"ปริมาณ"},
+    {q:'"น้ำหนักตัว" คือข้อมูลเชิงอะไร?',a:"ปริมาณ"},
+    {q:'"ราคาของสินค้า" คือข้อมูลเชิงอะไร?',a:"ปริมาณ"},
+    {q:'"ยอดไลก์บน TikTok" คือข้อมูลเชิงอะไร?',a:"ปริมาณ"},
+    {q:'"ความสูงของต้นไม้" คือข้อมูลเชิงอะไร?',a:"ปริมาณ"},
+  ]
 };
 
 // โหลดเฟรม Slimer ทั้ง 7 รูป
@@ -830,9 +730,7 @@ function pxText(text,x,y,size,color){
 
 // ========== GAME STATE ==========
 const G={
-  running:false,
-  heroType:"male",
-  score:0,hp:100,
+  running:false,score:0,hp:100,
   camX:0,killed:0,inQ:false,
   curMonster:null,curQ:null,wrongCnt:0,
 
@@ -848,8 +746,6 @@ const G={
 
 const P={x:100,y:0,w:30,h:60,vx:0,vy:0,onGround:false,facing:1,frame:0,ft:0,state:'idle',hurtT:0};
 
-let selectedCharacter = "male";
-
 // ========== HERO SPRITES ==========
 const heroIdle = new Image();
 heroIdle.src = "male_hero_free/individual_sheets/male_hero-idle.png";
@@ -862,44 +758,6 @@ heroJump.src = "male_hero_free/individual_sheets/male_hero-jump.png";
 
 const heroFall = new Image();
 heroFall.src = "male_hero_free/individual_sheets/male_hero-fall.png";
-
-// FEMALE HERO
-const femaleIdle = new Image();
-femaleIdle.src = "Knight_player_1.4/Knight_player_1.4/Knight_player/Idle_KG_2.png";
-
-const femaleRun = new Image();
-femaleRun.src ="Knight_player_1.4/Knight_player_1.4/Knight_player/Walking_KG_1.png";
-
-const femaleJump = new Image();
-femaleJump.src = "Knight_player_1.4/Knight_player_1.4/Knight_player/Jump_KG_1.png";
-
-const femaleFall = new Image();
-femaleFall.src = "Knight_player_1.4/Knight_player_1.4/Knight_player/Fall_KG_1.png";
-
-window.addEventListener("load",()=>{
-
-  const maleBtn=document.getElementById("pick-male");
-  const femaleBtn=document.getElementById("pick-female");
-
-  if(!maleBtn || !femaleBtn) return;
-
-  maleBtn.onclick=()=>{
-
-    selectedCharacter="male";
-
-    maleBtn.style.borderColor="#3aff3a";
-    femaleBtn.style.borderColor="#555";
-  };
-
-  femaleBtn.onclick=()=>{
-
-    selectedCharacter="female";
-
-    femaleBtn.style.borderColor="#ff66cc";
-    maleBtn.style.borderColor="#555";
-  };
-
-});
 
 // ========== SWAMP BACKGROUNDS ==========
 
@@ -968,7 +826,7 @@ const trees = [
   {x:5200,img:birchOrange,scale:1,yOff:-70},
   {x:5700,img:birchGreen,scale:1.4},
 
-  {x:6300,img:birchOrange,scale:1,yOff:-50},
+  {x:6300,img:birchOrange,scale:1,yOff:-70},
   {x:6800,img:birchGreen,scale:1.5},
   {x:7300,img:birchOrange,scale:0.9},
 
@@ -1478,6 +1336,8 @@ console.log("GY =", GY);
   vy:0,
   onGround:false
 });
+
+  console.log("BOSS CREATED");
 
 }
 
@@ -2017,6 +1877,8 @@ function drawProps(){
 // ========== DRAW MONSTERS ==========
 function drawMonsters(){
 
+  console.log("DRAW MONSTERS RUNNING");
+
   const now=Date.now();
 
   for(const m of G.monsters){
@@ -2067,6 +1929,13 @@ if(imgKey==="boss"){
   }
 
 }
+
+console.log(
+  "IDLE:",
+  minotaurIdleFrames.length,
+  "WALK:",
+  minotaurWalkFrames.length
+);
 
     if(!m.alive){
       if(m.dt<30){
@@ -2231,133 +2100,71 @@ for(const p of G.platforms){
 // ========== DRAW PLAYER (pixel art) ==========
 function drawPlayer(){
 
-  const sx = P.x - G.camX;
+const sx = P.x - G.camX;
 
-  let idleSprite =
-    selectedCharacter === "female"
-      ? femaleIdle
-      : heroIdle;
-
-  let runSprite =
-    selectedCharacter === "female"
-      ? femaleRun
-      : heroRun;
-
-  let jumpSprite =
-    selectedCharacter === "female"
-      ? femaleJump
-      : heroJump;
-
-  let fallSprite =
-    selectedCharacter === "female"
-      ? femaleFall
-      : heroFall;
-
-  let sprite = idleSprite;
-
-  let frames =
-    selectedCharacter === "female"
-      ? 4
-      : 10;
+  let sprite = heroIdle;
+  let frames = 10;
 
   if(!P.onGround){
-
     if(P.vy < 0){
-
-      sprite = jumpSprite;
-
-      frames =
-        selectedCharacter === "female"
-          ? 6
-          : 6;
-
+      sprite = heroJump;
+      frames = 6;
     }else{
-
-      sprite = fallSprite;
-
-      frames =
-        selectedCharacter === "female"
-          ? 3
-          : 4;
-
+      sprite = heroFall;
+      frames = 4;
     }
-
-  }else if(Math.abs(P.vx) > 0.1){
-
-    sprite = runSprite;
-
-    frames =
-      selectedCharacter === "female"
-        ? 7
-        : 10;
-
+  }
+  else if(Math.abs(P.vx) > 0.1){
+    sprite = heroRun;
+    frames = 10;
   }
 
   const frameWidth = sprite.width / frames;
   const frameHeight = sprite.height;
 
   const currentFrame =
-    Math.floor(Date.now() / 100) % frames;
-
-  // ขนาดตัวละคร
-  const drawW =
-  selectedCharacter === "female"
-    ? 60
-    : 128;
-
-const drawH =
-  selectedCharacter === "female"
-    ? 50
-    : 128;
+    Math.floor(Date.now()/100) % frames;
 
   ctx.save();
 
-const drawY =
-  selectedCharacter === "female"
-    ? P.y + 11
-    : P.y - 20;
+  if(P.facing === -1){
 
-const drawX =
-  sx - (drawW / 2 - 14);
+    ctx.scale(-1,1);
 
-if(P.facing === -1){
+    ctx.drawImage(
+      sprite,
+      currentFrame * frameWidth,
+      0,
+      frameWidth,
+      frameHeight,
 
-  ctx.scale(-1,1);
+      -(sx + 78),
+      P.y - 20, 
 
-  ctx.drawImage(
-    sprite,
-    currentFrame * frameWidth,
-    0,
-    frameWidth,
-    frameHeight,
+      128,
+      128
+    )
 
-    -drawX - drawW,
-    drawY,
+  }else{
 
-    drawW,
-    drawH
-  );
+    ctx.drawImage(
+      sprite,
+      currentFrame * frameWidth,
+      0,
+      frameWidth,
+      frameHeight,
 
-}else{
+      sx - 50,
+      P.y - 20,
 
-  ctx.drawImage(
-    sprite,
-    currentFrame * frameWidth,
-    0,
-    frameWidth,
-    frameHeight,
+      128,
+      128
+    );
 
-    drawX,
-    drawY,
-
-    drawW,
-    drawH
-  );
-
-}
-
-ctx.restore();
-
+  }
+//ctx.strokeStyle = "red";
+//ctx.strokeRect(sx, P.y, P.w, P.h);
+  ctx.restore();
 }
 
 // ========== DRAW PARTICLES (pixel squares) ==========
