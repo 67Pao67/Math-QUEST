@@ -1616,14 +1616,26 @@ ctx.imageSmoothingEnabled=false;
 let CW,CH,GY;
 
 function resizeCanvas(){
-  CW=Math.min(window.innerWidth,800);
-  CH=Math.min(window.innerHeight*0.82,460);
-  canvas.width=CW; canvas.height=CH;
-  GY=CH-72;
-  ctx.imageSmoothingEnabled=false;
+
+  CW = 800;
+  CH = 450;
+
+  canvas.width = CW;
+  canvas.height = CH;
+
+  GY = CH - 72;
+
+  ctx.imageSmoothingEnabled = false;
+
 }
 resizeCanvas();
-window.addEventListener('resize',()=>{resizeCanvas();if(G.running)buildLevel();});
+
+window.addEventListener('resize',()=>{
+  resizeCanvas();
+
+  if(G.running)
+    buildLevel();
+});
 
 // ========== PIXEL FONT renderer (tiny pixel text on canvas) ==========
 // Draw pixel text using ctx (fallback to fillText with Press Start 2P if loaded)
