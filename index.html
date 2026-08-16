@@ -769,9 +769,41 @@ position:relative;
 
 /* ── QUESTION POPUP ── */
 #q-popup{
-  display:none;position:fixed;top:0;left:0;width:100%;height:100%;
-  align-items:center;justify-content:center;
-  z-index:80;background:rgba(0,0,0,0.82);
+  display:none;
+  position:fixed;
+
+  top:0;
+  left:0;
+
+  width:100%;
+  height:100%;
+
+  align-items:center;
+  justify-content:center;
+
+  background:rgba(0,0,0,0.82);
+
+  /* ให้อยู่เหนือทุกอย่างในเกม */
+  z-index:10000;
+
+  /* ให้ popup รับการคลิก */
+  pointer-events:auto;
+}
+
+#q-popup.show{
+  display:flex;
+}
+
+#q-box{
+  position:relative;
+  z-index:10001;
+  pointer-events:auto;
+}
+
+#q-input,
+#q-btn,
+#q-run-btn{
+  pointer-events:auto;
 }
 #q-popup.show{display:flex;}
 #q-box{
@@ -1076,7 +1108,7 @@ position:relative;
   <div class="hud-sep"></div>
   <div class="hud-item"><span class="hud-label">เหลือ</span><span id="h-remain">10</span></div>
   <div class="hud-sep"></div>
-  <div class="hud-item"><span class="hud-label">บอส</span><span style="color:#3aff3a;font-size:9px">7+</span></div>
+  <div class="hud-item"><span class="hud-label">บอส</span><span style="color:#3aff3a;font-size:9px">16+</span></div>
 </div>
 
 <canvas id="gameCanvas"></canvas>
@@ -1106,8 +1138,23 @@ position:relative;
     <div id="q-fb"></div>
     <div id="q-tries"></div>
     <div id="q-actions">
-      <button class="pbtn green" id="q-btn">✓ ตอบ</button>
-      <button class="pbtn red" id="q-run-btn">✕ หนี!</button>
+<button
+  type="button"
+  class="pbtn green"
+  id="q-btn"
+  onclick="checkAns()"
+>
+  ✓ ตอบ
+</button>
+
+<button
+  type="button"
+  class="pbtn red"
+  id="q-run-btn"
+  onclick="runFromMonster()"
+>
+  ✕ หนี!
+</button>
     </div>
   </div>
 </div>
@@ -1119,7 +1166,7 @@ position:relative;
     <div id="boss-big"><span id="boss-big-emoji" style="font-size:78px">👹</span><img id="boss-big-img" src="" style="display:none;width:96px;height:96px;object-fit:contain;image-rendering:pixelated;"></div>
     <div style="color:#fff;font-size:7px;margin-top:4px" id="boss-name-txt">เจงการ์</div>
     <div id="bhpw"><div id="bhp" style="width:100%"></div></div>
-    <div id="boss-si" style="font-size:10px;">คะแนน: <span id="bsc">0</span> / ต้องการ 7</div>
+    <div id="boss-si" style="font-size:10px;">คะแนน: <span id="bsc">0</span> / ต้องการ 16</div>
     <div id="boss-fail">✕ คะแนนไม่พอ!<br>บอสโจมตี!</div>
     <button id="hit-btn">▶ โจมตี!</button>
   </div>
@@ -1433,15 +1480,16 @@ hard:[
   {q:"นามบัญญัติ ใช้เรียงลำดับ (ถูก/ผิด)?",a:"ผิด"},
   {q:"คะแนนสอบ อยู่ในมาตรวัดระดับอัตราส่วน (Ratio) (ถูก/ผิด)?",a:"ผิด"},
   {q:"ครูดอนต้องการเปรียบเทียบการกระจายคะแนนสอบที่มีค่าเฉลี่ยไม่เท่ากัน ควรใช้สถิติตัวใด?",a:"สัมประสิทธิ์การแปรผัน"},
-  {q:"ครูดอนสุ่มตัวอย่างนักเรียนโดยแบ่งตามสัดส่วนของแผนกประถมและมัธยม เรียกว่าการสุ่มแบบใด?",a:"การสุ่มตัวอย่างแบบแบ่งชั้นภูมิ"},
+  {q:"พารามิเตอร์ หมายถึง ค่าวัดที่แสดงลักษณะของประชากร (ถูก / ผิด)?",a:"ถูก"},
   {q:"ยิ่งนักเรียนเล่นมือถือมาก เกรดเฉลี่ยยิ่งลดลง เป็นความสัมพันธ์แบบใด?",a:"สหสัมพันธ์เชิงลบ"},
   {q:"สุ่มนักเรียนมา 50 คนเพื่อทดสอบว่าคะแนนเฉลี่ยสูงกว่าระดับประเทศหรือไม่ จัดเป็นสถิติประเภทใด?",a:"สถิติเชิงอนุมาน"},
   {q:"แบบประเมินความพึงพอใจ (มากที่สุด ถึง น้อยที่สุด) อยู่ในมาตรวัดระดับใด?",a:"เรียงอันดับ"},
   {q:"เก็บข้อมูลเงินออมของนักเรียนกลุ่มเดิมต่อเนื่องตั้งแต่ ม.1 ถึง ม.6 จัดเป็นข้อมูลประเภทใด?",a:"ข้อมูลแผง"},
-  {q:"สิ่งที่มาตรวัดระดับอัตราส่วน (Ratio) มี แต่มาตรวัดระดับอันตรภาค (Interval) ไม่มีคืออะไร?",a:"ศูนย์แท้"},
+  {q:"ค่าที่ได้จากการคำนวณข้อมูลของกลุ่มตัวอย่างเรียกว่าอะไร?",a:"ค่าสถิติ"},
   {q:"คะแนนสอบมีค่าสูงหรือต่ำผิดปกติ (Outlier) ควรเลือกใช้ค่ากลางชนิดใด?",a:"มัธยฐาน"},
-  {q:"ค่าความแปรปรวน (Variance) มีหน่วยเป็นอย่างไร?",a:"หน่วยยกกำลังสอง"},
-  {q:"แจกแบบสอบถามเฉพาะนักเรียนที่เดินผ่านหน้าห้องพักครู เป็นการสุ่มแบบใช้ความน่าจะเป็นหรือไม่?",a:"ไม่เป็น"}
+  {q:"การใช้ตาราง กราฟ แผนภูมิ ค่าเฉลี่ย และร้อยละ ในการนำเสนอข้อมูล จัดเป็นสถิติศาสตร์ประเภทใด?",a:"สถิติศาสตร์เชิงพรรณนา"},
+  {q:"แจกแบบสอบถามเฉพาะนักเรียนที่เดินผ่านหน้าห้องพักครู เป็นการสุ่มแบบใช้ความน่าจะเป็นหรือไม่?",a:"ไม่เป็น"},
+  {q:"รหัสไปรษณีย์ 10530 เป็นข้อมูลเชิงปริมาณ เพราะประกอบด้วยตัวเลข (ถูก/ผิด)?",a:"ผิด"}
 ]
 };
 
@@ -1476,6 +1524,178 @@ for(let i=1;i<=4;i++){
   img.src = `Enemies Pack FIles/Enemies Pack FIles/Assets/Sprites/Bettle/bettle${i}.png`;
   bettleFrames.push(img);
 }
+
+// =====================================================
+// DUNGEON GOBLIN SPRITES
+// =====================================================
+
+const goblinIdle = new Image();
+goblinIdle.src =
+"Monsters_Creatures_Fantasy/Monsters_Creatures_Fantasy/Goblin/Idle.png";
+
+const goblinRun = new Image();
+goblinRun.src =
+"Monsters_Creatures_Fantasy/Monsters_Creatures_Fantasy/Goblin/Run.png";
+
+const goblinAttack = new Image();
+goblinAttack.src =
+"Monsters_Creatures_Fantasy/Monsters_Creatures_Fantasy/Goblin/Attack.png";
+
+// =====================================================
+// DUNGEON SKELETON SPRITES
+// =====================================================
+
+const skeletonIdle = new Image();
+skeletonIdle.src =
+"Monsters_Creatures_Fantasy/Monsters_Creatures_Fantasy/Skeleton/Idle.png";
+
+const skeletonWalk = new Image();
+skeletonWalk.src =
+"Monsters_Creatures_Fantasy/Monsters_Creatures_Fantasy/Skeleton/Walk.png";
+
+const skeletonAttack = new Image();
+skeletonAttack.src =
+"Monsters_Creatures_Fantasy/Monsters_Creatures_Fantasy/Skeleton/Attack.png";
+
+// =====================================================
+// DUNGEON MUSHROOM SPRITES
+// =====================================================
+
+const dungeonMushroomIdle =
+  new Image();
+
+dungeonMushroomIdle.src =
+"Monsters_Creatures_Fantasy/Monsters_Creatures_Fantasy/Mushroom/Idle.png";
+
+
+const dungeonMushroomRun =
+  new Image();
+
+dungeonMushroomRun.src =
+"Monsters_Creatures_Fantasy/Monsters_Creatures_Fantasy/Mushroom/Run.png";
+
+
+const dungeonMushroomAttack =
+  new Image();
+
+dungeonMushroomAttack.src =
+"Monsters_Creatures_Fantasy/Monsters_Creatures_Fantasy/Mushroom/Attack.png";
+
+// =====================================================
+// FROST GUARDIAN BOSS SPRITES
+// =====================================================
+
+function loadFrostFrames(
+  folder,
+  prefix,
+  count
+){
+
+  const frames = [];
+
+  for(
+    let i = 1;
+    i <= count;
+    i++
+  ){
+
+    const img =
+      new Image();
+
+    img.src =
+      "Frost_Guardian_FREE_v1.0/PNG files/" +
+      folder +
+      "/" +
+      prefix +
+      "_" +
+      i +
+      ".png";
+
+    frames.push(img);
+
+  }
+
+  return frames;
+}
+
+
+// IDLE = 6
+const frostIdleFrames =
+  loadFrostFrames(
+    "idle",
+    "idle",
+    6
+  );
+
+
+// WALK = 10
+const frostWalkFrames =
+  loadFrostFrames(
+    "walk",
+    "walk",
+    10
+  );
+
+  frostWalkFrames[0].onload = () => {
+
+  console.log(
+    "✅ FROST WALK OK",
+    frostWalkFrames[0].src,
+    frostWalkFrames[0].naturalWidth,
+    frostWalkFrames[0].naturalHeight
+  );
+
+};
+
+frostWalkFrames[0].onerror = () => {
+
+  console.error(
+    "❌ FROST WALK FAIL",
+    frostWalkFrames[0].src
+  );
+
+};
+
+
+// ATTACK 1 = 14
+const frostAttackFrames =
+  loadFrostFrames(
+    "1_atk",
+    "1_atk",
+    14
+  );
+
+
+// TAKE HIT = 7
+const frostHitFrames =
+  loadFrostFrames(
+    "take_hit",
+    "take_hit",
+    7
+  );
+
+
+// DEATH = 16
+const frostDeathFrames =
+  loadFrostFrames(
+    "death",
+    "death",
+    16
+  );
+
+  frostIdleFrames[0].onload = () => {
+  console.log(
+    "✅ FROST IMAGE OK",
+    frostIdleFrames[0].src
+  );
+};
+
+frostIdleFrames[0].onerror = () => {
+  console.error(
+    "❌ FROST IMAGE FAIL",
+    frostIdleFrames[0].src
+  );
+};
 
 const minotaurIdleFrames = [];
 
@@ -1581,6 +1801,204 @@ mediumMushroom.src = "Mediummushroom.png";
 const smallMushroom = new Image();
 smallMushroom.src = "Smallmushroom.png";
 
+const portalImg = new Image();
+portalImg.src = "portal.png";
+
+const caveLayer1 = new Image();
+caveLayer1.src = "cave_layer_1.png";
+
+const caveLayer2 = new Image();
+caveLayer2.src = "cave_layer_2.png";
+
+const caveLayer3 = new Image();
+caveLayer3.src = "cave_layer_3.png";
+
+const caveLayer4 = new Image();
+caveLayer4.src = "cave_layer_4.png";
+
+const caveLayer5 = new Image();
+caveLayer5.src = "cave_layer_5.png";
+
+const caveLayer6 = new Image();
+caveLayer6.src = "cave_layer_6.png";
+
+const caveLayer7 = new Image();
+caveLayer7.src = "cave_layer_7.png";
+
+const dungeonPillar = new Image();
+dungeonPillar.src = "pillar_side.png";
+
+// =====================================================
+// DUNGEON PROPS
+// =====================================================
+
+// ROCKS
+const dungeonRock1 = new Image();
+dungeonRock1.src = "dungeonrock_1.png";
+
+const dungeonRock2 = new Image();
+dungeonRock2.src = "dungeonrock_2.png";
+
+
+// DEAD TREES
+const dungeonTree1 = new Image();
+dungeonTree1.src = "dungeondead_tree_1.png";
+
+const dungeonTree2 = new Image();
+dungeonTree2.src = "dungeondead_tree_2.png";
+
+
+// GRAVES
+
+// 1 = มน
+const dungeonGrave1 = new Image();
+dungeonGrave1.src = "dungeongrave_1.png";
+
+// 2 = เหลี่ยม
+const dungeonGrave2 = new Image();
+dungeonGrave2.src = "dungeongrave_2.png";
+
+// 3 = กางเขน
+const dungeonGrave3 = new Image();
+dungeonGrave3.src = "dungeongrave_3.png";
+
+// 4 = รูปคน
+const dungeonGrave4 = new Image();
+dungeonGrave4.src = "dungeongrave_4.png";
+
+
+// FENCES
+const dungeonFence1 = new Image();
+dungeonFence1.src = "dungeonfence_1.png";
+
+const dungeonFence2 = new Image();
+dungeonFence2.src = "dungeonfence_2.png"
+
+
+// ========== COIN SPRITE SHEET ==========
+const coinSheet = new Image();
+
+coinSheet.src = "coin1_16x16.png";
+
+coinSheet.onload = () => {
+  console.log(
+    "COIN SPRITE LOADED",
+    coinSheet.width,
+    coinSheet.height
+  );
+};
+
+coinSheet.onerror = () => {
+  console.log("COIN SPRITE LOAD FAIL");
+};
+
+const COIN_FRAME_W = 16;
+const COIN_FRAME_H = 16;
+const COIN_FRAME_COUNT = 15;
+
+const dungeonTiles = new Image();
+dungeonTiles.src = "Tilesetv3.png";
+
+dungeonTiles.onload = () => {
+  console.log(
+    "DARK DUNGEON LOADED",
+    dungeonTiles.width,
+    dungeonTiles.height
+  );
+};
+
+dungeonTiles.onerror = () => {
+  console.log("DARK DUNGEON LOAD FAIL");
+};
+
+// =====================================================
+// DARK DUNGEON - SOURCE PIECES
+// ใช้ "ชิ้นใหญ่ที่ศิลปินประกอบไว้แล้ว"
+// ไม่หั่นทุกอย่างเป็น 16x16
+// =====================================================
+
+const DARK_PIECES = {
+
+  FLOOR_TOP_LEFT:{
+    sx:144,
+    sy:144,
+    sw:16,
+    sh:16
+  },
+
+  FLOOR_TOP_MID:{
+    sx:160,
+    sy:144,
+    sw:16,
+    sh:16
+  },
+
+  FLOOR_TOP_RIGHT:{
+    sx:176,
+    sy:144,
+    sw:16,
+    sh:16
+  },
+
+  FLOOR_BRICK:{
+    sx:96,
+    sy:240,
+    sw:16,
+    sh:16
+  },
+
+};
+
+// =====================================================
+// ADD DARK DUNGEON PIECE
+// =====================================================
+
+function addDarkPiece(
+  type,
+  x,
+  y,
+  drawW,
+  drawH
+){
+
+  const p = DARK_PIECES[type];
+
+  if(!p){
+
+    console.log(
+      "UNKNOWN DARK PIECE:",
+      type
+    );
+
+    return;
+
+  }
+
+  G.dungeonTiles.push({
+
+    // ตำแหน่งใน Tilesetv3.png
+    sx:p.sx,
+    sy:p.sy,
+
+    // ขนาดจริงที่ตัดจาก PNG
+    sw:p.sw,
+    sh:p.sh,
+
+    // ตำแหน่งในโลกเกม
+    x:x,
+    y:y,
+
+    // ขนาดแสดงผล
+    dw:drawW,
+    dh:drawH,
+
+    flipH:false
+
+  });
+
+}
+
+
 // ========== MONSTER IMAGES ==========
 const MIMAGES={
   m1:'Enemies Pack FIles/Enemies Pack FIles/Assets/Sprites/Slimer/slimer1.png',
@@ -1651,11 +2069,44 @@ const G={
     hard:[]
   },
 
-  props:[],monsters:[],platforms:[],clouds:[],particles:[],decorations:[],
+  props:[],
+  monsters:[],
+  platforms:[],
+  clouds:[],
+  particles:[],
+  damageTexts:[],
+  decorations:[],
+  portals:[],
+  dungeonDecos:[],
+  dungeonProps:[],
+
   bossKilled:false,
 };
 
-const P={x:100,y:0,w:30,h:60,vx:0,vy:0,onGround:false,facing:1,frame:0,ft:0,state:'idle',hurtT:0};
+const P={
+  x:100,
+  y:0,
+  w:30,
+  h:60,
+
+  vx:0,
+  vy:0,
+
+  onGround:false,
+  facing:1,
+
+  frame:0,
+  ft:0,
+  state:'idle',
+
+  hurtT:0,
+  stunT:0,
+  // POISON
+  poisonTicksLeft:0,
+  poisonTickT:0
+
+
+};
 
 let selectedCharacter = "male";
 
@@ -1847,6 +2298,9 @@ function drawDecor(){
 // ========== GAME CONSTANTS ==========
 
 const LEVEL_W = 10000;
+const WORLD_W = 22000;
+const DUNGEON_START = 12000;
+const DUNGEON_END = WORLD_W;
 const GRAVITY = 0.52;
 const JUMP_F = -13;
 const SPD = 3.2;
@@ -1899,9 +2353,186 @@ function playWrongSound(){
   osc.stop(ac.currentTime+0.25);
 }
 
+function addDungeonProp(
+  img,
+  x,
+  groundY,
+  width,
+  height
+){
+
+  G.dungeonProps.push({
+    img: img,
+    x: x,
+    y: groundY - height,
+    w: width,
+    h: height
+  });
+
+}
+
+function drawDungeonProps(){
+
+  if(!G.dungeonProps) return;
+
+  for(const p of G.dungeonProps){
+
+    if(
+      !p.img.complete ||
+      p.img.naturalWidth === 0
+    ){
+      continue;
+    }
+
+    const sx =
+      p.x - G.camX;
+
+    if(
+      sx < -100 ||
+      sx > CW + 100
+    ){
+      continue;
+    }
+
+    ctx.save();
+
+    ctx.imageSmoothingEnabled = false;
+
+    ctx.drawImage(
+      p.img,
+      sx,
+      p.y,
+      p.w,
+      p.h
+    );
+
+    ctx.restore();
+  }
+
+}
+
+// =====================================================
+// DUNGEON HARD QUIZ MONSTER
+// ใช้ Sprite Dungeon ไม่เกี่ยวกับ Forest
+// =====================================================
+
+function addDungeonQuizMonster(
+  x,
+  y,
+  enemyKind,
+  patrolMinX,
+  patrolMaxX
+){
+
+  let monsterName =
+    "Dungeon Quiz Monster";
+
+
+  if(enemyKind === "quizGoblin"){
+    monsterName = "Goblin Quiz";
+  }
+
+  if(enemyKind === "quizSkeleton"){
+    monsterName = "Skeleton Quiz";
+  }
+
+  if(enemyKind === "quizMushroom"){
+    monsterName = "Mushroom Quiz";
+  }
+
+
+  G.monsters.push({
+
+    x:x,
+    y:y,
+
+    baseY:
+      y + 33,
+
+    w:40,
+    h:46,
+
+    alive:true,
+
+
+    type:{
+
+      name:
+        monsterName,
+
+      // สีแดงแบบ HARD
+      col:
+        "#e03c28",
+
+      // ไม่ใช้รูป Forest
+      imgKey:
+        null
+
+    },
+
+
+    // =============================================
+    // LV.3 = HARD
+    // =============================================
+
+    lv:3,
+    hp:3,
+
+
+    // ตัวนี้เป็นคำถาม
+    // ไม่ใช่ melee
+    combatType:
+      "quiz",
+
+
+    // เป็นคนละชนิดกับตัวโจมตี
+    enemyKind:
+      enemyKind,
+
+
+    state:
+      "idle",
+
+    dir:
+      -1,
+
+    dt:0,
+    ft:0,
+    fr:0,
+
+    chasing:false,
+
+    stunT:0,
+
+    isBoss:false,
+
+
+    spawnX:
+      x,
+
+    spawnY:
+      y,
+
+
+    vy:0,
+
+    onGround:false,
+
+
+    // ขอบเขตที่เดินได้
+    patrolMinX:
+      patrolMinX,
+
+    patrolMaxX:
+      patrolMaxX
+
+  });
+
+}
+
 // ========== BUILD LEVEL ==========
 function buildLevel(){
-  G.platforms=[];G.monsters=[];G.clouds=[];G.particles=[];G.decors=[];
+  G.platforms=[];G.monsters=[];G.clouds=[];G.particles=[];G.decors=[];G.dungeonTiles=[];G.dungeonDecos=[];G.dungeonProps = [];
   G.camX=0;G.killed=0;G.bossKilled=false;
 
 function addGroundStep(x,y,w,h=160){
@@ -2375,6 +3006,3302 @@ G.monsters.push({
 
 });
 
+G.portals.push({
+
+  x: 6960,      // กลางแมพ
+
+  y: 120,       // วางสูงไว้ก่อน
+
+  w: 64,
+
+  h: 64,
+
+  frame: 0,
+
+  ft: 0,
+
+  cooldown: 0,
+
+targetX: DUNGEON_START + 100,
+targetY: GY - 100
+
+});
+
+// =====================================================
+// DARK DUNGEON
+// ROOM 1 - FLOOR TEST V2
+// =====================================================
+
+G.dungeonTiles = [];
+
+
+// =====================================================
+// ROOM SETTINGS
+// =====================================================
+
+const ROOM_X = DUNGEON_START;
+
+// จำนวนช่องพื้น
+const FLOOR_TILES = 44;
+
+// 16x16 ขยาย x2
+const DG_TILE = 32;
+
+const ROOM_W =
+  FLOOR_TILES * DG_TILE;
+
+// ระดับพื้น
+const ROOM_FLOOR =
+  GY - 10;
+
+// =====================================================
+// DUNGEON EDGE PILLARS
+// เสาปิดขอบซ้าย/ขวาของหน้าผา
+// ตัวเสายาวลงไปจนพ้นขอบจอ
+// =====================================================
+
+// ใหญ่กว่าเดิม
+const PILLAR_W = 48;
+
+// ทำให้ยาวมากพอจนฐานล่างพ้น Canvas
+const PILLAR_H = 160;
+
+// ให้หัวเสาโผล่ขึ้นเหนือขอบพื้นนิดหนึ่ง
+const PILLAR_Y =
+  ROOM_FLOOR - 6;
+
+// จำนวน pixel ที่เสาจะกินเข้ามาในพื้น
+const PILLAR_COVER = 20;
+
+
+// =========================
+// LEFT PILLAR
+// =========================
+
+G.dungeonDecos.push({
+
+  img: dungeonPillar,
+
+  // ส่วนใหญ่ของเสาอยู่นอกพื้น
+  // แต่กินเข้ามาปิดขอบ 20px
+  x:
+    ROOM_X
+    - PILLAR_W
+    + PILLAR_COVER,
+
+  y: PILLAR_Y,
+
+  w: PILLAR_W,
+  h: PILLAR_H
+
+});
+
+
+// =========================
+// RIGHT PILLAR
+// =========================
+
+G.dungeonDecos.push({
+
+  img: dungeonPillar,
+
+  // กินเข้ามาในพื้น 20px
+  // ส่วนที่เหลือยื่นออกไปด้านขวา
+  x:
+    ROOM_X
+    + ROOM_W
+    - PILLAR_COVER,
+
+  y: PILLAR_Y,
+
+  w: PILLAR_W,
+  h: PILLAR_H
+
+});
+
+
+// =====================================================
+// FLOOR SETTINGS
+// =====================================================
+const BRICK_OVERLAP = 8;
+const FLOOR_TOP_OFFSET_Y = 3;
+
+// =====================================================
+// BRICK FILL ใต้พื้น
+// เติมลงไปจนสุดล่างจอ
+// วาดก่อน = อยู่ด้านหลัง
+// =====================================================
+
+const BRICK_START_Y =
+  ROOM_FLOOR + DG_TILE - BRICK_OVERLAP;
+
+for(
+  let y = BRICK_START_Y;
+  y < CH + DG_TILE;
+  y += DG_TILE
+){
+
+  for(let i=0; i<FLOOR_TILES; i++){
+
+    const x =
+      ROOM_X + i * DG_TILE;
+
+    addDarkPiece(
+      "FLOOR_BRICK",
+      x,
+      y,
+      DG_TILE,
+      DG_TILE
+    );
+
+  }
+
+}
+
+// =====================================================
+// RAISED GROUND SECTION
+// พื้นยกสูงขึ้นจากพื้นหลัก
+// =====================================================
+
+function addRaisedGroundSection(
+  x,
+  widthTiles,
+  levelsHigh
+){
+
+  const sectionW =
+    widthTiles * DG_TILE;
+
+  const topY =
+    ROOM_FLOOR - (levelsHigh * DG_TILE);
+
+
+  // =====================================
+  // BODY (brick ด้านล่าง)
+  // =====================================
+
+// ===================================================
+// BRICK
+// ทำฐานให้แคบกว่าพื้นขาว
+// ===================================================
+
+const brickTotalW =
+  widthTiles * FLOAT_BRICK_W;
+
+
+// จัดฐาน brick ให้อยู่กลาง platform
+const brickStartX =
+  x + (platformW - brickTotalW) / 2;
+
+
+for(let i = 0; i < widthTiles; i++){
+
+  const tileX =
+    brickStartX +
+    i * FLOAT_BRICK_W;
+
+  addDarkPiece(
+    "FLOOR_BRICK",
+
+    tileX,
+    brickY,
+
+    FLOAT_BRICK_W,
+    FLOAT_BRICK_H
+  );
+
+}
+
+
+  // =====================================
+  // TOP (ชั้นบนสีอ่อน)
+  // =====================================
+
+  const topDrawY =
+    topY + FLOOR_TOP_OFFSET_Y;
+
+  for(let i = 0; i < widthTiles; i++){
+
+    const tileX =
+      x + i * DG_TILE;
+
+    if(i === 0){
+
+      addDarkPiece(
+        "FLOOR_TOP_LEFT",
+        tileX,
+        topDrawY,
+        DG_TILE,
+        DG_TILE
+      );
+
+    }
+    else if(i === widthTiles - 1){
+
+      addDarkPiece(
+        "FLOOR_TOP_RIGHT",
+        tileX,
+        topDrawY,
+        DG_TILE,
+        DG_TILE
+      );
+
+    }
+    else{
+
+      addDarkPiece(
+        "FLOOR_TOP_MID",
+        tileX,
+        topDrawY,
+        DG_TILE,
+        DG_TILE
+      );
+
+    }
+
+  }
+
+
+  // =====================================
+  // COLLISION ของพื้นยก
+  // =====================================
+
+  G.platforms.push({
+    x: x,
+    y: topY,
+    w: sectionW,
+    h: DG_TILE,
+    t: "dg-step"
+  });
+
+}
+
+
+// =====================================================
+// FLOOR TOP
+// วาดทีหลัง = อยู่หน้าสุด
+// ขยับลงเล็กน้อยเพื่อปิด gap ระหว่าง top กับ brick
+// =====================================================
+
+for(let i=0; i<FLOOR_TILES; i++){
+
+  const x =
+    ROOM_X + i * DG_TILE;
+
+  const floorTopY =
+    ROOM_FLOOR + FLOOR_TOP_OFFSET_Y;
+
+  if(i === 0){
+
+    addDarkPiece(
+      "FLOOR_TOP_LEFT",
+      x,
+      floorTopY,
+      DG_TILE,
+      DG_TILE
+    );
+
+  }
+
+  else if(i === FLOOR_TILES - 1){
+
+    addDarkPiece(
+      "FLOOR_TOP_RIGHT",
+      x,
+      floorTopY,
+      DG_TILE,
+      DG_TILE
+    );
+
+  }
+
+  else{
+
+    addDarkPiece(
+      "FLOOR_TOP_MID",
+      x,
+      floorTopY,
+      DG_TILE,
+      DG_TILE
+    );
+
+  }
+
+
+}
+
+// =====================================================
+// MAIN DUNGEON FLOOR COLLISION
+// collision ของพื้นหลักเกาะแรก
+// =====================================================
+
+G.platforms.push({
+
+  x: ROOM_X,
+
+  // ให้ตรงกับพื้นสีขาวที่เราเห็นจริง
+  y: ROOM_FLOOR + FLOOR_TOP_OFFSET_Y,
+
+  w: ROOM_W,
+
+  // hitbox ของพื้น
+  h: DG_TILE,
+
+  t: "dg-floor",
+
+  // collision อย่างเดียว
+  // ไม่ให้ drawPlatforms เอาพื้น Forest มาวาดทับ
+  noDraw: true
+
+});
+
+// =====================================================
+// TEST GOBLIN - DUNGEON ROOM 1
+// =====================================================
+
+G.monsters.push({
+
+  // เกิดห่างจากจุดเข้าดันเจี้ยนเล็กน้อย
+  x:
+    ROOM_X + 380,
+
+y:
+  ROOM_FLOOR -
+  (2 * DG_TILE) +
+  FLOOR_TOP_OFFSET_Y -
+  46,
+
+  w:34,
+  h:46,
+
+  alive:true,
+
+  type:{
+    name:"Goblin",
+    col:"#7fbf4d",
+    imgKey:null
+  },
+
+  lv:1,
+
+  // ไม่ใช้ระบบคำถาม
+  combatType:"melee",
+
+  // บอกว่าใช้ AI Goblin
+  enemyKind:"goblin",
+
+  state:"idle",
+
+  dir:-1,
+
+  chasing:false,
+
+  stunT:0,
+
+  vy:0,
+
+  onGround:false,
+
+  attackT:0,
+
+  attackCooldown:0,
+
+  didDamage:false,
+
+  spawnX:
+    ROOM_X + 380,
+
+spawnY:
+  ROOM_FLOOR -
+  (2 * DG_TILE) +
+  FLOOR_TOP_OFFSET_Y -
+  46,
+
+  isBoss:false,
+
+  dt:0,
+  ft:0,
+  fr:0
+
+});
+
+// =====================================================
+// SKELETON - DUNGEON ROOM 1
+// =====================================================
+
+G.monsters.push({
+
+  x:
+    ROOM_X + 780,
+
+  y:
+    ROOM_FLOOR -
+    (2 * DG_TILE) +
+    FLOOR_TOP_OFFSET_Y -
+    54,
+
+  w:38,
+  h:54,
+
+  alive:true,
+
+  type:{
+    name:"Skeleton",
+    col:"#dddddd",
+    imgKey:null
+  },
+
+  lv:3,
+
+  combatType:"melee",
+
+  enemyKind:"skeleton",
+
+  state:"idle",
+
+  dir:-1,
+
+  chasing:false,
+
+  stunT:0,
+
+  vy:0,
+
+  onGround:false,
+
+  attackT:0,
+
+  attackCooldown:0,
+
+  didDamage:false,
+
+  spawnX:
+    ROOM_X + 780,
+
+  spawnY:
+    ROOM_FLOOR -
+    (2 * DG_TILE) +
+    FLOOR_TOP_OFFSET_Y -
+    54,
+
+  isBoss:false,
+
+  dt:0,
+  ft:0,
+  fr:0
+
+});
+
+// =====================================================
+// ISLAND 1 - HARD QUIZ MUSHROOM
+// =====================================================
+
+addDungeonQuizMonster(
+
+  // X
+  ROOM_X +
+  37 * DG_TILE,
+
+
+  // Y พื้นหลัก
+  ROOM_FLOOR +
+  FLOOR_TOP_OFFSET_Y -
+  46,
+
+
+  // ชนิด
+  "quizMushroom",
+
+
+  // เดินได้ตั้งแต่
+  ROOM_X +
+  34 * DG_TILE,
+
+
+  // ถึง
+  ROOM_X +
+  41 * DG_TILE
+
+);
+
+// =====================================================
+// ISLAND 1 - RAISED SECOND LEVEL
+// พื้นยกช่วงกลางของเกาะแรก
+// =====================================================
+
+// เริ่มจากด้านซ้ายของเกาะมา 11 ช่อง
+const RAISED_X =
+  ROOM_X + 11 * DG_TILE;
+
+// ความยาวของชั้นสอง
+// 18 ช่อง × 32px = 576px
+const RAISED_TILES = 18;
+
+// สูงจากพื้นหลัก 2 ชั้น
+// 2 × 32 = 64px
+const RAISED_LEVELS = 2;
+
+// ความกว้างจริง
+const RAISED_W =
+  RAISED_TILES * DG_TILE;
+
+// ระดับบนสุดของก้อน
+const RAISED_TOP_Y =
+  ROOM_FLOOR -
+  (RAISED_LEVELS * DG_TILE);
+
+
+// =====================================================
+// PART 1 : BRICK BODY
+//
+// สร้างตัวก้อนก่อน
+// มี brick 2 แถว
+// =====================================================
+
+for(
+  let row = 0;
+  row < RAISED_LEVELS;
+  row++
+){
+
+  const brickY =
+    RAISED_TOP_Y +
+    DG_TILE -
+    BRICK_OVERLAP +
+    row * DG_TILE;
+
+
+  for(
+    let i = 0;
+    i < RAISED_TILES;
+    i++
+  ){
+
+    const x =
+      RAISED_X +
+      i * DG_TILE;
+
+    addDarkPiece(
+      "FLOOR_BRICK",
+
+      x,
+      brickY,
+
+      DG_TILE,
+      DG_TILE
+    );
+
+  }
+
+}
+
+
+// =====================================================
+// PART 2 : WHITE TOP
+//
+// ต้องวาดหลัง brick
+// เพื่อให้ขอบสีขาวอยู่หน้าสุด
+// =====================================================
+
+const RAISED_TOP_DRAW_Y =
+  RAISED_TOP_Y +
+  FLOOR_TOP_OFFSET_Y;
+
+
+for(
+  let i = 0;
+  i < RAISED_TILES;
+  i++
+){
+
+  const x =
+    RAISED_X +
+    i * DG_TILE;
+
+
+  // ซ้ายสุด
+  if(i === 0){
+
+    addDarkPiece(
+      "FLOOR_TOP_LEFT",
+
+      x,
+      RAISED_TOP_DRAW_Y,
+
+      DG_TILE,
+      DG_TILE
+    );
+
+  }
+
+  // ขวาสุด
+  else if(
+    i === RAISED_TILES - 1
+  ){
+
+    addDarkPiece(
+      "FLOOR_TOP_RIGHT",
+
+      x,
+      RAISED_TOP_DRAW_Y,
+
+      DG_TILE,
+      DG_TILE
+    );
+
+  }
+
+  // ตรงกลางทั้งหมด
+  else{
+
+    addDarkPiece(
+      "FLOOR_TOP_MID",
+
+      x,
+      RAISED_TOP_DRAW_Y,
+
+      DG_TILE,
+      DG_TILE
+    );
+
+  }
+
+}
+
+// =====================================================
+// PART 2.5 : SIDE WHITE CAPS
+// ปิดขอบซ้าย / ขวาของชั้นสองให้ดูไม่ตัดตรง
+// =====================================================
+
+// ความกว้างที่ตัดจาก tile ต้นฉบับ
+const CAP_SRC_W = 6;
+
+// กว้างจริงตอนวาด (เพราะเกมขยาย x2)
+const CAP_DRAW_W = CAP_SRC_W * 2;
+
+// จำนวนแถวที่จะวางลงมา
+// +1 เพื่อให้ปิดลงมาถึงหน้าก้อน brick
+const CAP_ROWS = RAISED_LEVELS + 1;
+
+
+// =========================
+// LEFT / RIGHT CAPS
+// =========================
+
+for(let row = 0; row < CAP_ROWS; row++){
+
+  const capY =
+    RAISED_TOP_DRAW_Y +
+    row * DG_TILE;
+
+
+  // ---------------------------------
+  // LEFT CAP
+  // ใช้ขอบซ้ายของ FLOOR_TOP_LEFT
+  // และขยับให้ออกมานอกก้อนนิดหนึ่ง
+  // ---------------------------------
+  G.dungeonTiles.push({
+
+    sx: DARK_PIECES.FLOOR_TOP_LEFT.sx,
+    sy: DARK_PIECES.FLOOR_TOP_LEFT.sy,
+
+    sw: CAP_SRC_W,
+    sh: 16,
+
+    x:
+      RAISED_X -
+      CAP_DRAW_W +
+      4,
+
+    y: capY,
+
+    flipH: false
+
+  });
+
+
+  // ---------------------------------
+  // RIGHT CAP
+  // ใช้ขอบขวาของ FLOOR_TOP_RIGHT
+  // และขยับให้ออกมานอกก้อนนิดหนึ่ง
+  // ---------------------------------
+  G.dungeonTiles.push({
+
+    sx:
+      DARK_PIECES.FLOOR_TOP_RIGHT.sx +
+      DARK_PIECES.FLOOR_TOP_RIGHT.sw -
+      CAP_SRC_W,
+
+    sy: DARK_PIECES.FLOOR_TOP_RIGHT.sy,
+
+    sw: CAP_SRC_W,
+    sh: 16,
+
+    x:
+      RAISED_X +
+      RAISED_W -
+      4,
+
+    y: capY,
+
+    flipH: false
+
+  });
+
+}
+
+// =====================================================
+// PART 3 : COLLISION
+//
+// ให้ผู้เล่นยืนบนชั้นสองได้
+// noDraw = ห้าม Forest platform มาวาดหญ้าทับ
+// =====================================================
+
+G.platforms.push({
+
+  x: RAISED_X,
+
+  y: RAISED_TOP_Y,
+
+  w: RAISED_W,
+
+  h: DG_TILE,
+
+  t: "dg-step",
+
+  noDraw: true
+
+});
+
+
+
+// =====================================================
+// SIDE BUMPERS FOR RAISED SECOND LEVEL
+// กันชนด้านซ้าย / ขวา ของชั้นสอง
+// =====================================================
+
+const RAISED_SIDE_W = 12;
+
+// ความสูงของผนังด้านข้าง
+const RAISED_SIDE_H =
+  RAISED_LEVELS * DG_TILE;
+
+// กันชนซ้าย
+G.platforms.push({
+
+  x: RAISED_X,
+
+  y: RAISED_TOP_DRAW_Y + DG_TILE,
+
+  w: RAISED_SIDE_W,
+
+  h: RAISED_SIDE_H,
+
+  t: "dg-side",
+
+  noDraw: true,
+  sideBlock: true
+
+});
+
+// กันชนขวา
+G.platforms.push({
+
+  x: RAISED_X + RAISED_W - RAISED_SIDE_W,
+
+  y: RAISED_TOP_DRAW_Y + DG_TILE,
+
+  w: RAISED_SIDE_W,
+
+  h: RAISED_SIDE_H,
+
+  t: "dg-side",
+
+  noDraw: true,
+  sideBlock: true
+
+});
+
+// =====================================================
+// DUNGEON ISLAND BUILDER
+// ใช้สร้างเกาะ 2 - 5 จากแม่แบบเกาะ 1
+// =====================================================
+
+function addDungeonIsland(
+  islandX,
+  floorY,
+  raisedStartTile,
+  raisedTiles,
+  raisedLevels
+){
+  
+
+
+  // ===================================================
+  // BASIC SIZE
+  // ===================================================
+
+  const islandW =
+    FLOOR_TILES * DG_TILE;
+
+  const floorTopY =
+    floorY + FLOOR_TOP_OFFSET_Y;
+
+
+  // ===================================================
+  // 1. MAIN BRICK BODY
+  // เติม brick จากพื้นลงไปจนสุดจอ
+  // ===================================================
+
+  const brickStartY =
+    floorY +
+    DG_TILE -
+    BRICK_OVERLAP;
+
+
+  for(
+    let y = brickStartY;
+    y < CH + DG_TILE;
+    y += DG_TILE
+  ){
+
+    for(
+      let i = 0;
+      i < FLOOR_TILES;
+      i++
+    ){
+
+      const x =
+        islandX +
+        i * DG_TILE;
+
+      addDarkPiece(
+        "FLOOR_BRICK",
+
+        x,
+        y,
+
+        DG_TILE,
+        DG_TILE
+      );
+
+    }
+
+  }
+
+
+  // ===================================================
+  // 2. MAIN WHITE TOP
+  // ===================================================
+
+  for(
+    let i = 0;
+    i < FLOOR_TILES;
+    i++
+  ){
+
+    const x =
+      islandX +
+      i * DG_TILE;
+
+
+    // LEFT
+    if(i === 0){
+
+      addDarkPiece(
+        "FLOOR_TOP_LEFT",
+
+        x,
+        floorTopY,
+
+        DG_TILE,
+        DG_TILE
+      );
+
+    }
+
+    // RIGHT
+    else if(
+      i === FLOOR_TILES - 1
+    ){
+
+      addDarkPiece(
+        "FLOOR_TOP_RIGHT",
+
+        x,
+        floorTopY,
+
+        DG_TILE,
+        DG_TILE
+      );
+
+    }
+
+    // MIDDLE
+    else{
+
+      addDarkPiece(
+        "FLOOR_TOP_MID",
+
+        x,
+        floorTopY,
+
+        DG_TILE,
+        DG_TILE
+      );
+
+    }
+
+  }
+
+
+  // ===================================================
+  // 3. MAIN FLOOR COLLISION
+  // ===================================================
+
+  G.platforms.push({
+
+    x: islandX,
+
+    y: floorTopY,
+
+    w: islandW,
+
+    h: DG_TILE,
+
+    t: "dg-floor",
+
+    noDraw: true
+
+  });
+
+
+  // ===================================================
+  // 4. RAISED SECOND LEVEL SETTINGS
+  // ===================================================
+
+  const raisedX =
+    islandX +
+    raisedStartTile * DG_TILE;
+
+  const raisedW =
+    raisedTiles *
+    DG_TILE;
+
+  const raisedTopY =
+    floorY -
+    raisedLevels * DG_TILE;
+
+  const raisedTopDrawY =
+    raisedTopY +
+    FLOOR_TOP_OFFSET_Y;
+
+
+  // ===================================================
+  // 5. RAISED BRICK BODY
+  // ===================================================
+
+  for(
+    let row = 0;
+    row < raisedLevels;
+    row++
+  ){
+
+    const brickY =
+      raisedTopY +
+      DG_TILE -
+      BRICK_OVERLAP +
+      row * DG_TILE;
+
+
+    for(
+      let i = 0;
+      i < raisedTiles;
+      i++
+    ){
+
+      const x =
+        raisedX +
+        i * DG_TILE;
+
+      addDarkPiece(
+        "FLOOR_BRICK",
+
+        x,
+        brickY,
+
+        DG_TILE,
+        DG_TILE
+      );
+
+    }
+
+  }
+
+
+  // ===================================================
+  // 6. RAISED WHITE TOP
+  // ===================================================
+
+  for(
+    let i = 0;
+    i < raisedTiles;
+    i++
+  ){
+
+    const x =
+      raisedX +
+      i * DG_TILE;
+
+
+    if(i === 0){
+
+      addDarkPiece(
+        "FLOOR_TOP_LEFT",
+
+        x,
+        raisedTopDrawY,
+
+        DG_TILE,
+        DG_TILE
+      );
+
+    }
+
+    else if(
+      i === raisedTiles - 1
+    ){
+
+      addDarkPiece(
+        "FLOOR_TOP_RIGHT",
+
+        x,
+        raisedTopDrawY,
+
+        DG_TILE,
+        DG_TILE
+      );
+
+    }
+
+    else{
+
+      addDarkPiece(
+        "FLOOR_TOP_MID",
+
+        x,
+        raisedTopDrawY,
+
+        DG_TILE,
+        DG_TILE
+      );
+
+    }
+
+  }
+
+
+  // ===================================================
+  // 7. WHITE SIDE CAPS
+  // ปิดขอบตรงของชั้นสอง
+  // ===================================================
+
+  const CAP_SRC_W = 6;
+
+  const CAP_DRAW_W =
+    CAP_SRC_W * 2;
+
+
+  for(
+    let row = 0;
+    row < raisedLevels;
+    row++
+  ){
+
+    const capY =
+      raisedTopDrawY +
+      row * DG_TILE;
+
+
+    // -------------------------
+    // LEFT CAP
+    // -------------------------
+
+    G.dungeonTiles.push({
+
+      sx:
+        DARK_PIECES
+        .FLOOR_TOP_LEFT
+        .sx,
+
+      sy:
+        DARK_PIECES
+        .FLOOR_TOP_LEFT
+        .sy,
+
+      sw:
+        CAP_SRC_W,
+
+      sh:
+        16,
+
+      x:
+        raisedX -
+        CAP_DRAW_W +
+        4,
+
+      y:
+        capY,
+
+      flipH:
+        false
+
+    });
+
+
+    // -------------------------
+    // RIGHT CAP
+    // -------------------------
+
+    G.dungeonTiles.push({
+
+      sx:
+        DARK_PIECES
+        .FLOOR_TOP_RIGHT
+        .sx
+        +
+        DARK_PIECES
+        .FLOOR_TOP_RIGHT
+        .sw
+        -
+        CAP_SRC_W,
+
+      sy:
+        DARK_PIECES
+        .FLOOR_TOP_RIGHT
+        .sy,
+
+      sw:
+        CAP_SRC_W,
+
+      sh:
+        16,
+
+      x:
+        raisedX +
+        raisedW -
+        4,
+
+      y:
+        capY,
+
+      flipH:
+        false
+
+    });
+
+  }
+
+
+  // ===================================================
+  // 8. RAISED TOP COLLISION
+  // ===================================================
+
+  G.platforms.push({
+
+    x:
+      raisedX,
+
+    y:
+      raisedTopDrawY,
+
+    w:
+      raisedW,
+
+    h:
+      DG_TILE,
+
+    t:
+      "dg-step",
+
+    noDraw:
+      true
+
+  });
+
+
+  // ===================================================
+  // 9. SIDE WALL COLLISION
+  // กันเดินทะลุด้านซ้าย / ขวา
+  // ===================================================
+
+  const raisedWallW =
+    12;
+
+  const raisedWallY =
+    raisedTopDrawY +
+    DG_TILE;
+
+  const raisedWallH =
+    floorTopY -
+    raisedWallY +
+    DG_TILE;
+
+
+  // LEFT WALL
+  G.platforms.push({
+
+    x:
+      raisedX,
+
+    y:
+      raisedWallY,
+
+    w:
+      raisedWallW,
+
+    h:
+      raisedWallH,
+
+    t:
+      "dg-wall",
+
+    noDraw:
+      true
+
+  });
+
+
+  // RIGHT WALL
+  G.platforms.push({
+
+    x:
+      raisedX +
+      raisedW -
+      raisedWallW,
+
+    y:
+      raisedWallY,
+
+    w:
+      raisedWallW,
+
+    h:
+      raisedWallH,
+
+    t:
+      "dg-wall",
+
+    noDraw:
+      true
+
+  });
+
+
+  // ===================================================
+  // 10. EDGE PILLARS
+  // เสาปิดปลายเกาะซ้าย / ขวา
+  // แบบเดียวกับเกาะแรก
+  // ===================================================
+
+  const edgePillarW =
+    48;
+
+  const edgePillarH =
+    160;
+
+  const edgePillarCover =
+    20;
+
+  const edgePillarY =
+    floorY - 6;
+
+
+  // LEFT PILLAR
+  G.dungeonDecos.push({
+
+    img:
+      dungeonPillar,
+
+    x:
+      islandX -
+      edgePillarW +
+      edgePillarCover,
+
+    y:
+      edgePillarY,
+
+    w:
+      edgePillarW,
+
+    h:
+      edgePillarH
+
+  });
+
+
+  // RIGHT PILLAR
+  G.dungeonDecos.push({
+
+    img:
+      dungeonPillar,
+
+    x:
+      islandX +
+      islandW -
+      edgePillarCover,
+
+    y:
+      edgePillarY,
+
+    w:
+      edgePillarW,
+
+    h:
+      edgePillarH
+
+  });
+
+}
+
+// =====================================================
+// DUNGEON FLOATING PLATFORM
+//
+// x            = ตำแหน่ง X ของ platform
+// islandFloorY = ระดับพื้นของเกาะนั้น
+// widthTiles   = ความยาวกี่ tile
+// heightAbove  = สูงจากพื้นเกาะกี่ pixel
+// =====================================================
+
+// =====================================================
+// DUNGEON FLOATING PLATFORM V2
+//
+// เป็น platform บาง ๆ
+// ใช้ WHITE TOP + BRICK
+// ไม่มี gap
+// =====================================================
+
+function addDungeonFloatingPlatform(
+  x,
+  islandFloorY,
+  widthTiles,
+  heightAbove
+){
+
+  // ===================================================
+  // SIZE
+  // ===================================================
+
+  const platformW =
+    widthTiles * DG_TILE;
+
+
+  // ระดับพื้นหลักจริงของเกาะ
+  const islandTopY =
+    islandFloorY +
+    FLOOR_TOP_OFFSET_Y;
+
+
+  // ตำแหน่งด้านบนของ floating platform
+  const platformY =
+    islandTopY -
+    heightAbove;
+
+
+  // ===================================================
+  // FLOATING PLATFORM SETTINGS
+  // ===================================================
+
+  // Brick ใต้ platform ไม่ต้องหนา 32px
+  // ใช้แค่ 16px
+  const FLOAT_BRICK_H = 16;
+  const FLOAT_BRICK_W = 18;
+  
+
+
+  // ให้ brick ดันขึ้นมาซ้อนกับพื้นขาว
+  // เพื่อไม่ให้ BG โผล่เป็น gap
+  const FLOAT_BRICK_OVERLAP = 14;
+
+
+  // ตำแหน่ง brick
+  const brickY =
+    platformY +
+    DG_TILE -
+    FLOAT_BRICK_OVERLAP;
+
+
+  // ===================================================
+  // 1. BRICK
+  //
+  // วาดก่อน = อยู่หลังพื้นขาว
+  // ===================================================
+
+  for(
+    let i = 0;
+    i < widthTiles;
+    i++
+  ){
+
+    const tileX =
+      x +
+      i * DG_TILE;
+
+
+    addDarkPiece(
+      "FLOOR_BRICK",
+
+      tileX,
+      brickY,
+
+      DG_TILE,
+
+      // จากเดิม 32
+      // เหลือ 16
+      FLOAT_BRICK_H
+    );
+
+  }
+
+
+  // ===================================================
+  // 2. WHITE TOP
+  //
+  // วาดหลัง brick = อยู่ด้านหน้า
+  // ===================================================
+
+  for(
+    let i = 0;
+    i < widthTiles;
+    i++
+  ){
+
+    const tileX =
+      x +
+      i * DG_TILE;
+
+
+    // LEFT
+    if(i === 0){
+
+      addDarkPiece(
+        "FLOOR_TOP_LEFT",
+
+        tileX,
+        platformY,
+
+        DG_TILE,
+        DG_TILE
+      );
+
+    }
+
+
+    // RIGHT
+    else if(
+      i === widthTiles - 1
+    ){
+
+      addDarkPiece(
+        "FLOOR_TOP_RIGHT",
+
+        tileX,
+        platformY,
+
+        DG_TILE,
+        DG_TILE
+      );
+
+    }
+
+
+    // MIDDLE
+    else{
+
+      addDarkPiece(
+        "FLOOR_TOP_MID",
+
+        tileX,
+        platformY,
+
+        DG_TILE,
+        DG_TILE
+      );
+
+    }
+
+  }
+
+
+  // ===================================================
+  // 3. COLLISION
+  // ===================================================
+
+  G.platforms.push({
+
+    x: x,
+
+    y: platformY,
+
+    w: platformW,
+
+    // collision บาง ๆ ก็พอ
+    h: 20,
+
+    t: "dg-floating",
+
+    // ไม่ให้ platform หญ้าของ Forest มาวาด
+    noDraw: true
+
+  });
+
+}
+
+// =====================================================
+// DUNGEON ISLANDS 2 - 5
+// =====================================================
+
+// ระยะหลุมระหว่างแต่ละเกาะ
+const ISLAND_GAP = 96;
+
+
+// =====================================================
+// ISLAND 2
+//
+// ทั้งเกาะสูงกว่าเกาะ 1 = 32px
+// ชั้นสองอยู่ฝั่งซ้าย
+// =====================================================
+
+const ISLAND_2_X =
+  ROOM_X +
+  ROOM_W +
+  ISLAND_GAP;
+
+const ISLAND_2_FLOOR =
+  ROOM_FLOOR - 32;
+
+
+addDungeonIsland(
+
+  ISLAND_2_X,
+
+  ISLAND_2_FLOOR,
+
+  // ชั้นสองเริ่มช่องที่ 2
+  // = อยู่เกือบซ้ายสุด
+  2,
+
+  // ความยาวชั้นสอง
+  16,
+
+  // สูงขึ้น 2 ชั้น
+  2
+
+);
+
+// =====================================================
+// ISLAND 2 MONSTERS
+// =====================================================
+
+
+// ระดับพื้นชั้นสองของเกาะ 2
+const I2_RAISED_TOP =
+  ISLAND_2_FLOOR -
+  2 * DG_TILE +
+  FLOOR_TOP_OFFSET_Y;
+
+
+// ระดับพื้นหลักเกาะ 2
+const I2_GROUND_TOP =
+  ISLAND_2_FLOOR +
+  FLOOR_TOP_OFFSET_Y;
+
+
+
+// =====================================================
+// GOBLIN - บนชั้นสอง
+// =====================================================
+
+G.monsters.push({
+
+  x:
+    ISLAND_2_X +
+    5 * DG_TILE,
+
+  y:
+    I2_RAISED_TOP -
+    46,
+
+  w:34,
+  h:46,
+
+  alive:true,
+
+  type:{
+    name:"Goblin",
+    col:"#7fbf4d",
+    imgKey:null
+  },
+
+  lv:1,
+
+  combatType:"melee",
+  enemyKind:"goblin",
+
+  state:"idle",
+
+  dir:-1,
+
+  chasing:false,
+  stunT:0,
+
+  vy:0,
+  onGround:false,
+
+  attackT:0,
+  attackCooldown:0,
+  didDamage:false,
+
+  spawnX:
+    ISLAND_2_X +
+    5 * DG_TILE,
+
+  spawnY:
+    I2_RAISED_TOP -
+    46,
+
+  isBoss:false,
+
+  dt:0,
+  ft:0,
+  fr:0
+
+});
+
+
+
+// =====================================================
+// SKELETON - บนชั้นสอง
+// =====================================================
+
+G.monsters.push({
+
+  x:
+    ISLAND_2_X +
+    13 * DG_TILE,
+
+  y:
+    I2_RAISED_TOP -
+    54,
+
+  w:38,
+  h:54,
+
+  alive:true,
+
+  type:{
+    name:"Skeleton",
+    col:"#dddddd",
+    imgKey:null
+  },
+
+  lv:3,
+
+  combatType:"melee",
+  enemyKind:"skeleton",
+
+  state:"idle",
+
+  dir:-1,
+
+  chasing:false,
+  stunT:0,
+
+  vy:0,
+  onGround:false,
+
+  attackT:0,
+  attackCooldown:0,
+  didDamage:false,
+
+  spawnX:
+    ISLAND_2_X +
+    13 * DG_TILE,
+
+  spawnY:
+    I2_RAISED_TOP -
+    54,
+
+  isBoss:false,
+
+  dt:0,
+  ft:0,
+  fr:0
+
+});
+
+
+
+// =====================================================
+// POISON MUSHROOM - พื้นหลักขวา
+// =====================================================
+
+G.monsters.push({
+
+  x:
+    ISLAND_2_X +
+    26 * DG_TILE,
+
+  y:
+    I2_GROUND_TOP -
+    46,
+
+  w:38,
+  h:46,
+
+  alive:true,
+
+  type:{
+    name:"Poison Mushroom",
+    col:"#9b59b6",
+    imgKey:null
+  },
+
+  lv:2,
+
+  combatType:"melee",
+  enemyKind:"mushroom",
+
+  state:"idle",
+
+  dir:-1,
+
+  chasing:false,
+  stunT:0,
+
+  vy:0,
+  onGround:false,
+
+  attackT:0,
+  attackCooldown:0,
+  didDamage:false,
+
+  spawnX:
+    ISLAND_2_X +
+    26 * DG_TILE,
+
+  spawnY:
+    I2_GROUND_TOP -
+    46,
+
+  isBoss:false,
+
+  dt:0,
+  ft:0,
+  fr:0
+
+});
+
+
+
+// =====================================================
+// RESERVED SLOT - QUESTION MONSTER
+// =====================================================
+// ISLAND 2 - HARD QUIZ GOBLIN
+// =====================================================
+
+addDungeonQuizMonster(
+
+  ISLAND_2_X +
+  38 * DG_TILE,
+
+
+  ISLAND_2_FLOOR +
+  FLOOR_TOP_OFFSET_Y -
+  46,
+
+
+  "quizGoblin",
+
+
+  ISLAND_2_X +
+  35 * DG_TILE,
+
+
+  ISLAND_2_X +
+  41 * DG_TILE
+
+);
+// =====================================================
+
+const ISLAND_2_QUIZ_SLOT_X =
+  ISLAND_2_X +
+  37 * DG_TILE;
+
+const ISLAND_2_QUIZ_SLOT_Y =
+  I2_GROUND_TOP;
+
+
+// =====================================================
+// ISLAND 3
+//
+// ทั้งเกาะต่ำกว่าเกาะ 1 = 32px
+// ชั้นสองอยู่ฝั่งขวา
+// =====================================================
+
+const ISLAND_3_X =
+  ISLAND_2_X +
+  ROOM_W +
+  ISLAND_GAP;
+
+const ISLAND_3_FLOOR =
+  ROOM_FLOOR + 32;
+
+
+addDungeonIsland(
+
+  ISLAND_3_X,
+
+  ISLAND_3_FLOOR,
+
+  // เริ่มช่อง 26
+  // 26 + 16 = 42
+  // ยังไม่เกิน 44 ช่องของเกาะ
+  26,
+
+  16,
+
+  2
+
+);
+
+// =====================================================
+// ISLAND 3 MONSTERS
+// Mushroom + Goblin + Skeleton
+// =====================================================
+
+const I3_GROUND_TOP =
+  ISLAND_3_FLOOR +
+  FLOOR_TOP_OFFSET_Y;
+
+const I3_RAISED_TOP =
+  ISLAND_3_FLOOR -
+  2 * DG_TILE +
+  FLOOR_TOP_OFFSET_Y;
+
+
+// =====================================================
+// 1) POISON MUSHROOM - พื้นล่างฝั่งซ้าย
+// =====================================================
+
+G.monsters.push({
+
+  x:
+    ISLAND_3_X +
+    11 * DG_TILE,
+
+  y:
+    I3_GROUND_TOP -
+    46,
+
+  w:38,
+  h:46,
+
+  alive:true,
+
+  type:{
+    name:"Poison Mushroom",
+    col:"#9b59b6",
+    imgKey:null
+  },
+
+  lv:2,
+
+  combatType:"melee",
+  enemyKind:"mushroom",
+
+  state:"idle",
+
+  dir:-1,
+
+  chasing:false,
+  stunT:0,
+
+  vy:0,
+  onGround:false,
+
+  attackT:0,
+  attackCooldown:0,
+  didDamage:false,
+
+  spawnX:
+    ISLAND_3_X +
+    11 * DG_TILE,
+
+  spawnY:
+    I3_GROUND_TOP -
+    46,
+
+  isBoss:false,
+
+  dt:0,
+  ft:0,
+  fr:0
+
+});
+
+
+// =====================================================
+// 2) GOBLIN - พื้นล่างช่วงกลาง
+// =====================================================
+
+G.monsters.push({
+
+  x:
+    ISLAND_3_X +
+    22 * DG_TILE,
+
+  y:
+    I3_GROUND_TOP -
+    46,
+
+  w:34,
+  h:46,
+
+  alive:true,
+
+  type:{
+    name:"Goblin",
+    col:"#7fbf4d",
+    imgKey:null
+  },
+
+  lv:1,
+
+  combatType:"melee",
+  enemyKind:"goblin",
+
+  state:"idle",
+
+  dir:-1,
+
+  chasing:false,
+  stunT:0,
+
+  vy:0,
+  onGround:false,
+
+  attackT:0,
+  attackCooldown:0,
+  didDamage:false,
+
+  spawnX:
+    ISLAND_3_X +
+    22 * DG_TILE,
+
+  spawnY:
+    I3_GROUND_TOP -
+    46,
+
+  isBoss:false,
+
+  dt:0,
+  ft:0,
+  fr:0
+
+});
+
+
+// =====================================================
+// 3) SKELETON - ชั้นสองฝั่งขวา
+// =====================================================
+
+G.monsters.push({
+
+  x:
+    ISLAND_3_X +
+    34 * DG_TILE,
+
+  y:
+    I3_RAISED_TOP -
+    54,
+
+  w:38,
+  h:54,
+
+  alive:true,
+
+  type:{
+    name:"Skeleton",
+    col:"#dddddd",
+    imgKey:null
+  },
+
+  lv:3,
+
+  combatType:"melee",
+  enemyKind:"skeleton",
+
+  state:"idle",
+
+  dir:-1,
+
+  chasing:false,
+  stunT:0,
+
+  vy:0,
+  onGround:false,
+
+  attackT:0,
+  attackCooldown:0,
+  didDamage:false,
+
+  spawnX:
+    ISLAND_3_X +
+    34 * DG_TILE,
+
+  spawnY:
+    I3_RAISED_TOP -
+    54,
+
+  isBoss:false,
+
+  dt:0,
+  ft:0,
+  fr:0
+
+});
+
+// =====================================================
+// ISLAND 3 - HARD QUIZ SKELETON
+// ชั้นสองฝั่งขวา
+// =====================================================
+
+addDungeonQuizMonster(
+
+  ISLAND_3_X +
+  40 * DG_TILE,
+
+
+  // ชั้นสองสูงขึ้น 2 tiles
+  ISLAND_3_FLOOR -
+  2 * DG_TILE +
+  FLOOR_TOP_OFFSET_Y -
+  46,
+
+
+  "quizSkeleton",
+
+
+  ISLAND_3_X +
+  37 * DG_TILE,
+
+
+  ISLAND_3_X +
+  41 * DG_TILE
+
+);
+
+
+// =====================================================
+// ISLAND 4
+//
+// ทั้งเกาะสูงกว่าเกาะ 1 = 64px
+// ชั้นสองอยู่กลางค่อนไปทางซ้าย
+// =====================================================
+
+const ISLAND_4_X =
+  ISLAND_3_X +
+  ROOM_W +
+  ISLAND_GAP;
+
+const ISLAND_4_FLOOR =
+  ROOM_FLOOR - 64;
+
+
+addDungeonIsland(
+
+  ISLAND_4_X,
+
+  ISLAND_4_FLOOR,
+
+  // กลางค่อนไปซ้าย
+  7,
+
+  // ยาวกว่าเกาะ 2 / 3 นิดหนึ่ง
+  20,
+
+  2
+
+);
+
+// =====================================================
+// ISLAND 4 MONSTERS
+// Skeleton + Mushroom + Goblin
+// =====================================================
+
+const I4_GROUND_TOP =
+  ISLAND_4_FLOOR +
+  FLOOR_TOP_OFFSET_Y;
+
+const I4_RAISED_TOP =
+  ISLAND_4_FLOOR -
+  2 * DG_TILE +
+  FLOOR_TOP_OFFSET_Y;
+
+
+// =====================================================
+// 1) SKELETON - พื้นล่างฝั่งซ้าย
+// =====================================================
+
+G.monsters.push({
+
+  x:
+    ISLAND_4_X +
+    3 * DG_TILE,
+
+  y:
+    I4_GROUND_TOP -
+    54,
+
+  w:38,
+  h:54,
+
+  alive:true,
+
+  type:{
+    name:"Skeleton",
+    col:"#dddddd",
+    imgKey:null
+  },
+
+  lv:3,
+
+  combatType:"melee",
+  enemyKind:"skeleton",
+
+  state:"idle",
+
+  dir:-1,
+
+  chasing:false,
+  stunT:0,
+
+  vy:0,
+  onGround:false,
+
+  attackT:0,
+  attackCooldown:0,
+  didDamage:false,
+
+  spawnX:
+    ISLAND_4_X +
+    3 * DG_TILE,
+
+  spawnY:
+    I4_GROUND_TOP -
+    54,
+
+  isBoss:false,
+
+  dt:0,
+  ft:0,
+  fr:0
+
+});
+
+
+// =====================================================
+// 2) POISON MUSHROOM - ชั้นสอง
+// =====================================================
+
+G.monsters.push({
+
+  x:
+    ISLAND_4_X +
+    15 * DG_TILE,
+
+  y:
+    I4_RAISED_TOP -
+    46,
+
+  w:38,
+  h:46,
+
+  alive:true,
+
+  type:{
+    name:"Poison Mushroom",
+    col:"#9b59b6",
+    imgKey:null
+  },
+
+  lv:2,
+
+  combatType:"melee",
+  enemyKind:"mushroom",
+
+  state:"idle",
+
+  dir:-1,
+
+  chasing:false,
+  stunT:0,
+
+  vy:0,
+  onGround:false,
+
+  attackT:0,
+  attackCooldown:0,
+  didDamage:false,
+
+  spawnX:
+    ISLAND_4_X +
+    15 * DG_TILE,
+
+  spawnY:
+    I4_RAISED_TOP -
+    46,
+
+  isBoss:false,
+
+  dt:0,
+  ft:0,
+  fr:0
+
+});
+
+
+// =====================================================
+// 3) GOBLIN - พื้นล่างฝั่งขวา
+// =====================================================
+
+G.monsters.push({
+
+  x:
+    ISLAND_4_X +
+    37 * DG_TILE,
+
+  y:
+    I4_GROUND_TOP -
+    46,
+
+  w:34,
+  h:46,
+
+  alive:true,
+
+  type:{
+    name:"Goblin",
+    col:"#7fbf4d",
+    imgKey:null
+  },
+
+  lv:1,
+
+  combatType:"melee",
+  enemyKind:"goblin",
+
+  state:"idle",
+
+  dir:-1,
+
+  chasing:false,
+  stunT:0,
+
+  vy:0,
+  onGround:false,
+
+  attackT:0,
+  attackCooldown:0,
+  didDamage:false,
+
+  spawnX:
+    ISLAND_4_X +
+    37 * DG_TILE,
+
+  spawnY:
+    I4_GROUND_TOP -
+    46,
+
+  isBoss:false,
+
+  dt:0,
+  ft:0,
+  fr:0
+
+});
+
+// =====================================================
+// ISLAND 4 - HARD QUIZ MUSHROOM
+// =====================================================
+
+addDungeonQuizMonster(
+
+  ISLAND_4_X +
+  31 * DG_TILE,
+
+
+  ISLAND_4_FLOOR +
+  FLOOR_TOP_OFFSET_Y -
+  46,
+
+
+  "quizMushroom",
+
+
+  ISLAND_4_X +
+  28 * DG_TILE,
+
+
+  ISLAND_4_X +
+  34 * DG_TILE
+
+);
+
+
+// =====================================================
+// ISLAND 5
+//
+// ทั้งเกาะต่ำกว่าเกาะ 1 = 48px
+// ชั้นสองอยู่กลางค่อนไปทางขวา
+// =====================================================
+
+const ISLAND_5_X =
+  ISLAND_4_X +
+  ROOM_W +
+  ISLAND_GAP;
+
+const ISLAND_5_FLOOR =
+  ROOM_FLOOR + 48;
+
+
+addDungeonIsland(
+
+  ISLAND_5_X,
+
+  ISLAND_5_FLOOR,
+
+  // กลางค่อนไปทางขวา
+  18,
+
+  // 18 + 20 = 38
+  // ยังอยู่ในเกาะ 44 ช่อง
+  20,
+
+  2
+
+);
+
+// =====================================================
+// FINAL DUNGEON BOSS
+// FROST GUARDIAN
+// =====================================================
+
+G.monsters.push({
+
+  // วางช่วงพื้นล่างฝั่งซ้าย
+  // ก่อนถึงชั้นสองของเกาะ
+  x:
+    ISLAND_5_X +
+    26 * DG_TILE,
+
+y:
+  ISLAND_5_FLOOR -
+  2 * DG_TILE +
+  FLOOR_TOP_OFFSET_Y -
+  92,
+
+  // hitbox จริง
+  w:72,
+  h:92,
+
+  alive:true,
+
+  type:{
+    name:"Frost Guardian",
+    col:"#8ad8ff",
+    imgKey:null
+  },
+
+  // เราจะใช้ HARD Question
+  lv:3,
+
+  // สำคัญ:
+  // ห้ามใช้ isBoss:true
+  // เพราะจะไปชนระบบ Minotaur เก่า
+  isBoss:false,
+
+  // ใช้ตัวนี้แยกบอสใหม่
+  isFinalBoss:true,
+
+  enemyKind:
+    "frostBoss",
+
+    bossCorrect:0,
+   bossNeed:5,
+
+   deathT:0,
+   portalSpawned:false,
+
+  bossMode:
+    "quiz",
+
+    attackT:0,
+    attackCooldown:0,
+    didDamage:false,
+
+    rageEndTime:0,
+    quizCooldown:0,
+
+  state:
+    "idle",
+
+  dir:
+    -1,
+
+  chasing:false,
+
+  stunT:0,
+
+  vy:0,
+  onGround:true,
+
+  spawnX:
+    ISLAND_5_X +
+    12 * DG_TILE,
+
+  spawnY:
+    ISLAND_5_FLOOR +
+    FLOOR_TOP_OFFSET_Y -
+    92,
+
+  attackT:0,
+
+  attackCooldown:0,
+
+  didDamage:false,
+
+  // รอบหน้าจะใช้จับเวลา 10 วิ
+  rageEndTime:0,
+
+  dt:0,
+  ft:0,
+  fr:0
+
+});
+
+// =====================================================
+// DUNGEON FLOATING PLATFORMS V2
+//
+// อยู่ใกล้ระดับชั้นสอง
+// เกาะละ 1 - 2 อัน
+// สั้น 2 - 3 tiles
+// =====================================================
+
+
+
+// =====================================================
+// ISLAND 1
+//
+// ชั้นสอง:
+// เริ่ม tile 11
+// ยาว 18 tiles
+// อยู่ช่วง tile 11 - 28
+//
+// Floating:
+// หนึ่งอันซ้ายของชั้นสอง
+// หนึ่งอันขวาของชั้นสอง
+// =====================================================
+
+
+// LEFT
+addDungeonFloatingPlatform(
+
+  ROOM_X +
+  6 * DG_TILE,
+
+  ROOM_FLOOR,
+
+  // 3 tiles
+  3,
+
+  // ชั้นสองอยู่ ~64px
+  // ตัวนี้สูงกว่าเล็กน้อย
+  80
+
+);
+
+
+// RIGHT
+addDungeonFloatingPlatform(
+
+  ROOM_X +
+  31 * DG_TILE,
+
+  ROOM_FLOOR,
+
+  3,
+
+  88
+
+);
+
+
+
+// =====================================================
+// ISLAND 2
+//
+// ชั้นสองอยู่ซ้าย:
+// tile 2 - 17
+//
+// Floating:
+//
+// 1 อันอยู่ช่วงกลาง
+// 1 อันอยู่ทางขวา
+// =====================================================
+
+
+// MIDDLE
+addDungeonFloatingPlatform(
+
+  ISLAND_2_X +
+  20 * DG_TILE,
+
+  ISLAND_2_FLOOR,
+
+  3,
+
+  80
+
+);
+
+
+// RIGHT
+addDungeonFloatingPlatform(
+
+  ISLAND_2_X +
+  32 * DG_TILE,
+
+  ISLAND_2_FLOOR,
+
+  // สั้นกว่านิดหนึ่ง
+  2,
+
+  88
+
+);
+
+
+
+// =====================================================
+// ISLAND 3
+//
+// ชั้นสองอยู่ขวา:
+// tile 26 - 41
+//
+// Floating อยู่ซ้ายและกลาง
+// =====================================================
+
+
+// LEFT
+addDungeonFloatingPlatform(
+
+  ISLAND_3_X +
+  6 * DG_TILE,
+
+  ISLAND_3_FLOOR,
+
+  3,
+
+  76
+
+);
+
+
+// MIDDLE
+addDungeonFloatingPlatform(
+
+  ISLAND_3_X +
+  18 * DG_TILE,
+
+  ISLAND_3_FLOOR,
+
+  3,
+
+  88
+
+);
+
+
+
+// =====================================================
+// ISLAND 4
+//
+// ชั้นสอง:
+// tile 7 - 26
+//
+// ชั้นสองใหญ่แล้ว
+// ใช้ floating แค่ 1 อันด้านขวา
+// =====================================================
+
+addDungeonFloatingPlatform(
+
+  ISLAND_4_X +
+  31 * DG_TILE,
+
+  ISLAND_4_FLOOR,
+
+  3,
+
+  84
+
+);
+
+
+
+// =====================================================
+// ISLAND 5
+//
+// ชั้นสอง:
+// tile 18 - 37
+//
+// ใช้ floating ด้านซ้าย
+// และขวาปลายเกาะ
+// =====================================================
+
+
+// LEFT
+addDungeonFloatingPlatform(
+
+  ISLAND_5_X +
+  7 * DG_TILE,
+
+  ISLAND_5_FLOOR,
+
+  3,
+
+  84
+
+);
+
+
+// RIGHT
+addDungeonFloatingPlatform(
+
+  ISLAND_5_X +
+  39 * DG_TILE,
+
+  ISLAND_5_FLOOR,
+
+  2,
+
+  76
+
+);
+
+// =====================================================
+// DUNGEON PROPS - ALL 5 ISLANDS
+// ใช้ระบบ addDungeonProp แบบง่ายที่เราทดสอบแล้ว
+// =====================================================
+
+
+// =====================================================
+// GROUND LEVELS
+// =====================================================
+
+// พื้นหลัก
+const PROP_I1_GROUND =
+  ROOM_FLOOR + FLOOR_TOP_OFFSET_Y;
+
+const PROP_I2_GROUND =
+  ISLAND_2_FLOOR + FLOOR_TOP_OFFSET_Y;
+
+const PROP_I3_GROUND =
+  ISLAND_3_FLOOR + FLOOR_TOP_OFFSET_Y;
+
+const PROP_I4_GROUND =
+  ISLAND_4_FLOOR + FLOOR_TOP_OFFSET_Y;
+
+const PROP_I5_GROUND =
+  ISLAND_5_FLOOR + FLOOR_TOP_OFFSET_Y;
+
+
+// ชั้นสอง
+// ทุกเกาะของเราสูงขึ้น 2 tiles = 64px
+
+const PROP_I1_RAISED =
+  ROOM_FLOOR
+  - 2 * DG_TILE
+  + FLOOR_TOP_OFFSET_Y;
+
+const PROP_I2_RAISED =
+  ISLAND_2_FLOOR
+  - 2 * DG_TILE
+  + FLOOR_TOP_OFFSET_Y;
+
+const PROP_I3_RAISED =
+  ISLAND_3_FLOOR
+  - 2 * DG_TILE
+  + FLOOR_TOP_OFFSET_Y;
+
+const PROP_I4_RAISED =
+  ISLAND_4_FLOOR
+  - 2 * DG_TILE
+  + FLOOR_TOP_OFFSET_Y;
+
+const PROP_I5_RAISED =
+  ISLAND_5_FLOOR
+  - 2 * DG_TILE
+  + FLOOR_TOP_OFFSET_Y;
+
+
+
+// =====================================================
+// ISLAND 1
+// THEME: สุสานเก่า
+//
+// ชั้นสองอยู่กลางเกาะ
+// ใช้หลุมศพ + รั้ว + หิน
+// ไม่มีต้นไม้ใหญ่เพื่อไม่ให้จุดเริ่มรก
+// =====================================================
+
+
+// ---------- ฝั่งซ้ายพื้นล่าง ----------
+
+// หลุมศพหัวมน
+addDungeonProp(
+  dungeonGrave1,
+  ROOM_X + 7 * DG_TILE,
+  PROP_I1_GROUND,
+  26,
+  36
+);
+
+// หินเล็ก
+addDungeonProp(
+  dungeonRock1,
+  ROOM_X + 9 * DG_TILE,
+  PROP_I1_GROUND,
+  14,
+  8
+);
+
+
+// ---------- บนชั้นสอง ----------
+
+// กางเขน
+addDungeonProp(
+  dungeonGrave3,
+  ROOM_X + 17 * DG_TILE,
+  PROP_I1_RAISED,
+  22,
+  38
+);
+
+// หิน
+addDungeonProp(
+  dungeonRock2,
+  ROOM_X + 21 * DG_TILE,
+  PROP_I1_RAISED,
+  14,
+  8
+);
+
+// หลุมศพเหลี่ยม
+addDungeonProp(
+  dungeonGrave2,
+  ROOM_X + 25 * DG_TILE,
+  PROP_I1_RAISED,
+  26,
+  38
+);
+
+
+// ---------- ฝั่งขวาพื้นล่าง ----------
+
+addDungeonProp(
+  dungeonRock1,
+  ROOM_X + 34 * DG_TILE,
+  PROP_I1_GROUND,
+  14,
+  8
+);
+
+
+
+// =====================================================
+// ISLAND 2
+// THEME: ป่าตาย
+//
+// ชั้นสองอยู่ซ้าย
+// เกาะนี้ไม่มีหลุมศพ
+// ใช้ต้นไม้ + หิน + รั้ว
+// =====================================================
+
+
+// ---------- ชั้นสองฝั่งซ้าย ----------
+
+addDungeonProp(
+  dungeonRock2,
+  ISLAND_2_X + 11 * DG_TILE,
+  PROP_I2_RAISED,
+  14,
+  8
+);
+
+
+// ---------- พื้นหลักกลางเกาะ ----------
+
+// หินเล็ก
+addDungeonProp(
+  dungeonRock1,
+  ISLAND_2_X + 21 * DG_TILE,
+  PROP_I2_GROUND,
+  14,
+  8
+);
+
+
+// ต้นไม้แบบ 2
+addDungeonProp(
+  dungeonTree2,
+  ISLAND_2_X + 29 * DG_TILE,
+  PROP_I2_GROUND,
+  82,
+  115
+);
+
+
+// หินใต้ต้นไม้
+addDungeonProp(
+  dungeonRock2,
+  ISLAND_2_X + 32 * DG_TILE,
+  PROP_I2_GROUND,
+  14,
+  8
+);
+
+
+// ต้นไม้แบบ 1 ฝั่งขวา
+addDungeonProp(
+  dungeonTree1,
+  ISLAND_2_X + 38 * DG_TILE,
+  PROP_I2_GROUND,
+  88,
+  122
+);
+
+
+
+// =====================================================
+// ISLAND 3
+// THEME: สุสานใหญ่
+//
+// ชั้นสองอยู่ขวา
+// เน้นหลุมศพหลายแบบ
+// ไม่มีต้นไม้ใหญ่
+// =====================================================
+
+
+// ---------- พื้นหลักฝั่งซ้าย ----------
+
+// หัวมน
+addDungeonProp(
+  dungeonGrave1,
+  ISLAND_3_X + 8 * DG_TILE,
+  PROP_I3_GROUND,
+  25,
+  35
+);
+
+
+// หิน
+addDungeonProp(
+  dungeonRock1,
+  ISLAND_3_X + 11 * DG_TILE,
+  PROP_I3_GROUND,
+  14,
+  8
+);
+
+
+// กางเขน
+addDungeonProp(
+  dungeonGrave3,
+  ISLAND_3_X + 15 * DG_TILE,
+  PROP_I3_GROUND,
+  22,
+  39
+);
+
+
+// เหลี่ยม
+addDungeonProp(
+  dungeonGrave2,
+  ISLAND_3_X + 19 * DG_TILE,
+  PROP_I3_GROUND,
+  27,
+  39
+);
+
+
+// หินเล็ก
+addDungeonProp(
+  dungeonRock2,
+  ISLAND_3_X + 22 * DG_TILE,
+  PROP_I3_GROUND,
+  14,
+  8
+);
+
+
+// ---------- ชั้นสองฝั่งขวา ----------
+
+
+// รูปคน เป็นจุดเด่นของเกาะ
+addDungeonProp(
+  dungeonGrave4,
+  ISLAND_3_X + 35 * DG_TILE,
+  PROP_I3_RAISED,
+  32,
+  64
+);
+
+
+// หินเล็ก
+addDungeonProp(
+  dungeonRock1,
+  ISLAND_3_X + 39 * DG_TILE,
+  PROP_I3_RAISED,
+  14,
+  8
+);
+
+
+
+// =====================================================
+// ISLAND 4
+// THEME: ANCIENT DEAD TREE
+//
+// เกาะนี้สูง
+// ใช้ต้นไม้ใหญ่เป็น landmark
+// มีสุสานนิดเดียว
+// =====================================================
+
+
+// ---------- พื้นซ้าย ----------
+
+// ต้นไม้ใหญ่
+addDungeonProp(
+  dungeonTree1,
+  ISLAND_4_X + 5 * DG_TILE,
+  PROP_I4_GROUND,
+  96,
+  132
+);
+
+
+// หินรอบโคน
+addDungeonProp(
+  dungeonRock1,
+  ISLAND_4_X + 8 * DG_TILE,
+  PROP_I4_GROUND,
+  14,
+  8
+);
+
+addDungeonProp(
+  dungeonRock2,
+  ISLAND_4_X + 10 * DG_TILE,
+  PROP_I4_GROUND,
+  14,
+  8
+);
+
+
+// ---------- ชั้นสอง ----------
+
+
+// กางเขน
+addDungeonProp(
+  dungeonGrave3,
+  ISLAND_4_X + 17 * DG_TILE,
+  PROP_I4_RAISED,
+  22,
+  38
+);
+
+
+// หินเล็ก
+addDungeonProp(
+  dungeonRock2,
+  ISLAND_4_X + 21 * DG_TILE,
+  PROP_I4_RAISED,
+  14,
+  8
+);
+
+
+// ---------- พื้นขวา ----------
+
+// หลุมศพหัวมนเดี่ยว
+addDungeonProp(
+  dungeonGrave1,
+  ISLAND_4_X + 32 * DG_TILE,
+  PROP_I4_GROUND,
+  26,
+  36
+);
+
+
+// ต้นไม้อีกแบบขวาสุด
+addDungeonProp(
+  dungeonTree2,
+  ISLAND_4_X + 39 * DG_TILE,
+  PROP_I4_GROUND,
+  80,
+  112
+);
+
+
+// หินข้างต้นไม้
+addDungeonProp(
+  dungeonRock1,
+  ISLAND_4_X + 42 * DG_TILE,
+  PROP_I4_GROUND,
+  14,
+  8
+);
+
+
+
+// =====================================================
+// ISLAND 5
+// THEME: FINAL RUINS
+//
+// เกาะสุดท้าย
+// ผสมของจากทั้งด่าน แต่เว้นทางเดินกลางเกาะ
+// =====================================================
+
+
+// ---------- ฝั่งซ้าย ----------
+
+addDungeonProp(
+  dungeonTree2,
+  ISLAND_5_X + 4 * DG_TILE,
+  PROP_I5_GROUND,
+  84,
+  118
+);
+
+
+// หินใต้ต้นไม้
+addDungeonProp(
+  dungeonRock1,
+  ISLAND_5_X + 7 * DG_TILE,
+  PROP_I5_GROUND,
+  14,
+  8
+);
+
+
+// หลุมศพเหลี่ยม
+addDungeonProp(
+  dungeonGrave2,
+  ISLAND_5_X + 10 * DG_TILE,
+  PROP_I5_GROUND,
+  27,
+  39
+);
+
+
+// ---------- ชั้นสอง ----------
+
+// หิน
+addDungeonProp(
+  dungeonRock2,
+  ISLAND_5_X + 21 * DG_TILE,
+  PROP_I5_RAISED,
+  14,
+  8
+);
+
+
+// กางเขน
+addDungeonProp(
+  dungeonGrave3,
+  ISLAND_5_X + 24 * DG_TILE,
+  PROP_I5_RAISED,
+  22,
+  38
+);
+
+
+// รูปคน จุดเด่นสุดท้าย
+addDungeonProp(
+  dungeonGrave4,
+  ISLAND_5_X + 29 * DG_TILE,
+  PROP_I5_RAISED,
+  32,
+  64
+);
+
+
+// ---------- พื้นขวาสุด ----------
+
+addDungeonProp(
+  dungeonRock1,
+  ISLAND_5_X + 38 * DG_TILE,
+  PROP_I5_GROUND,
+  14,
+  8
+);
+
+
+addDungeonProp(
+  dungeonGrave1,
+  ISLAND_5_X + 40 * DG_TILE,
+  PROP_I5_GROUND,
+  25,
+  35
+);
+
+// =====================================================
+// DUNGEON COINS
+// เกาะละ 8 เหรียญ
+// แนวนอน + แนวตั้ง คละกัน
+// =====================================================
+
+
+// =====================================================
+// ISLAND 1
+// 4 แนวนอนบนพื้นหลัก
+// 4 แนวตั้งฝั่งขวา
+// =====================================================
+
+for(let i = 0; i < 4; i++){
+
+  addCoin(
+    ROOM_X + (5 + i) * DG_TILE,
+    PROP_I1_GROUND - 32
+  );
+
+}
+
+for(let i = 0; i < 4; i++){
+
+  addCoin(
+    ROOM_X + 34 * DG_TILE,
+    PROP_I1_GROUND - 32 - i * 24
+  );
+
+}
+
+
+
+// =====================================================
+// ISLAND 2
+// 4 แนวนอนบนชั้นสอง
+// 4 แนวตั้งกลางเกาะ
+// =====================================================
+
+for(let i = 0; i < 4; i++){
+
+  addCoin(
+    ISLAND_2_X + (6 + i) * DG_TILE,
+    PROP_I2_RAISED - 32
+  );
+
+}
+
+for(let i = 0; i < 4; i++){
+
+  addCoin(
+    ISLAND_2_X + 26 * DG_TILE,
+    PROP_I2_GROUND - 32 - i * 24
+  );
+
+}
+
+
+
+// =====================================================
+// ISLAND 3
+// 4 แนวนอนฝั่งซ้าย
+// 4 แนวตั้งใกล้ชั้นสอง
+// =====================================================
+
+for(let i = 0; i < 4; i++){
+
+  addCoin(
+    ISLAND_3_X + (6 + i) * DG_TILE,
+    PROP_I3_GROUND - 32
+  );
+
+}
+
+for(let i = 0; i < 4; i++){
+
+  addCoin(
+    ISLAND_3_X + 23 * DG_TILE,
+    PROP_I3_GROUND - 32 - i * 24
+  );
+
+}
+
+
+
+// =====================================================
+// ISLAND 4
+// 4 แนวนอนบนชั้นสอง
+// 4 แนวตั้งฝั่งขวา
+// =====================================================
+
+for(let i = 0; i < 4; i++){
+
+  addCoin(
+    ISLAND_4_X + (12 + i) * DG_TILE,
+    PROP_I4_RAISED - 32
+  );
+
+}
+
+for(let i = 0; i < 4; i++){
+
+  addCoin(
+    ISLAND_4_X + 34 * DG_TILE,
+    PROP_I4_GROUND - 32 - i * 24
+  );
+
+}
+
+
+
+// =====================================================
+// ISLAND 5
+// 4 แนวนอนพื้นซ้าย
+// 4 แนวตั้งบนช่วงชั้นสอง
+// =====================================================
+
+for(let i = 0; i < 4; i++){
+
+  addCoin(
+    ISLAND_5_X + (6 + i) * DG_TILE,
+    PROP_I5_GROUND - 32
+  );
+
+}
+
+for(let i = 0; i < 4; i++){
+
+  addCoin(
+    ISLAND_5_X + 31 * DG_TILE,
+    PROP_I5_RAISED - 24 - i * 24
+  );
+
+}
+
 }
 
 // ========== INPUT ==========
@@ -2401,22 +6328,61 @@ const isJ=()=>K['ArrowUp']||K['KeyW']||K['Space']||TB.j;
 
 // ========== PHYSICS ==========
 function updatePlayer(){
+
   if(G.inQ)return;
-  if(P.hurtT>0)P.hurtT--;
 
-  if(isL()){P.vx=-SPD;P.facing=-1;}
-  else if(isR()){P.vx=SPD;P.facing=1;}
-  else P.vx*=0.6;
+  if(P.hurtT > 0){
+    P.hurtT--;
+  }
 
-  const jNow=isJ();
-  if(jNow&&!jumpWas&&P.onGround){P.vy=JUMP_F;P.onGround=false;}
-  jumpWas=jNow;
+  // =====================================================
+  // PLAYER STUN
+  // 6 frames ≈ 0.1 วินาที ที่ 60 FPS
+  // =====================================================
+
+  if(P.stunT > 0){
+
+    P.stunT--;
+
+    // ให้แรงกระเด็นยังไหลต่อ
+    P.vx *= 0.92;
+
+  }else{
+
+    if(isL()){
+      P.vx = -SPD;
+      P.facing = -1;
+    }
+    else if(isR()){
+      P.vx = SPD;
+      P.facing = 1;
+    }
+    else{
+      P.vx *= 0.6;
+    }
+
+  }
+
+  const jNow = isJ();
+
+  // ตอน stun ห้ามกระโดด
+  if(
+    P.stunT === 0 &&
+    jNow &&
+    !jumpWas &&
+    P.onGround
+  ){
+    P.vy = JUMP_F;
+    P.onGround = false;
+  }
+
+  jumpWas = jNow;
 
   P.vy+=GRAVITY;
   if(P.vy>16)P.vy=16;
   P.x+=P.vx; P.y+=P.vy;
   if(P.x<0)P.x=0;
-  if(P.x>LEVEL_W-P.w)P.x=LEVEL_W-P.w;
+  if(P.x>WORLD_W-P.w)P.x=WORLD_W-P.w;
   P.onGround=false;
 
   for(const pl of G.platforms){
@@ -2426,9 +6392,100 @@ function updatePlayer(){
       }
     }
   }
+  // =====================================================
+// DUNGEON WALL + CEILING COLLISION
+// =====================================================
+
+if(P.x >= DUNGEON_START){
+
+  for(const pl of G.platforms){
+
+    if(
+      pl.t !== "dg-wall" &&
+      pl.t !== "dg-ceiling"
+    ){
+      continue;
+    }
+
+
+    const overlapX =
+      P.x + P.w > pl.x &&
+      P.x < pl.x + pl.w;
+
+    const overlapY =
+      P.y + P.h > pl.y &&
+      P.y < pl.y + pl.h;
+
+
+    if(!overlapX || !overlapY){
+      continue;
+    }
+
+
+    // =================================
+    // CEILING
+    // =================================
+
+    if(pl.t === "dg-ceiling"){
+
+      if(P.vy < 0){
+
+        P.y =
+          pl.y + pl.h;
+
+        P.vy = 0;
+
+      }
+
+      continue;
+    }
+
+
+    // =================================
+    // WALL
+    // =================================
+
+    if(pl.t === "dg-wall"){
+
+      const playerCenter =
+        P.x + P.w/2;
+
+      const wallCenter =
+        pl.x + pl.w/2;
+
+
+      if(playerCenter < wallCenter){
+
+        // ชนจากซ้าย
+        P.x =
+          pl.x - P.w;
+
+      }else{
+
+        // ชนจากขวา
+        P.x =
+          pl.x + pl.w;
+
+      }
+
+      P.vx = 0;
+
+    }
+
+  }
+
+}
 
   if(P.y>CH+80){
-    G.hp=Math.max(0,G.hp-20);P.hurtT=50;
+    G.hp =
+  Math.max(
+    0,
+    G.hp - 20
+  );
+
+showDamageText(20);
+
+P.hurtT = 50;
     P.x=Math.max(0,G.camX+40);P.y=GY-P.h;P.vy=0;
     updateHUD();
     if(G.hp<=0)doLose('พลังชีวิตหมด! คุณแพ้...');
@@ -2451,26 +6508,1642 @@ function updatePlayer(){
     }
   }
 
+// ---------- PORTAL COLLISION ----------
+for(const p of G.portals){
+
+  if(
+    P.x + P.w > p.x &&
+    P.x < p.x + p.w &&
+    P.y + P.h > p.y &&
+    P.y < p.y + p.h
+  ){
+
+    P.x = p.targetX;
+    P.y = p.targetY;
+
+    P.vx = 0;
+    P.vy = 0;
+
+    G.camX = Math.max(
+      0,
+      p.targetX - 120
+    );
+
+    break;
+  }
+}
   // Camera
   const wx=P.x-G.camX;
   const th=CW*0.42;
   if(wx>th)G.camX+=wx-th;
   if(wx<80)G.camX=Math.max(0,G.camX-(80-wx));
-  G.camX=Math.max(0,Math.min(G.camX,LEVEL_W-CW));
+  G.camX=Math.max(0,Math.min(G.camX,WORLD_W-CW));
 }
 
+// =====================================================
+// DAMAGE TEXT
+// =====================================================
+
+function showDamageText(dmg){
+
+  if(!G.damageTexts){
+    G.damageTexts = [];
+  }
+
+  G.damageTexts.push({
+
+    // เกิดบริเวณรอบตัวละคร
+    x:
+      P.x +
+      P.w / 2 +
+      (Math.random() - 0.5) * 22,
+
+    y:
+      P.y + 12,
+
+    vy:-0.8,
+
+    life:50,
+    max:50,
+
+    text:"-" + dmg
+
+  });
+
+}
+
+
+// =====================================================
+// NORMAL PLAYER DAMAGE
+// =====================================================
+
 function hurtP(dmg){
-  if(P.hurtT>0)return;
-  G.hp=Math.max(0,G.hp-dmg);P.hurtT=55;P.vy=JUMP_F*0.4;
+
+  // กันโดนตีซ้ำรัว ๆ
+  if(P.hurtT > 0){
+    return false;
+  }
+
+  G.hp =
+    Math.max(
+      0,
+      G.hp - dmg
+    );
+
+  // เลขแดง
+  showDamageText(dmg);
+
+  P.hurtT = 55;
+
+  P.vy =
+    JUMP_F * 0.4;
+
   updateHUD();
-  if(G.hp<=0)doLose('พลังชีวิตหมด! คุณแพ้...');
+
+  if(G.hp <= 0){
+    doLose(
+      'พลังชีวิตหมด! คุณแพ้...'
+    );
+  }
+
+  return true;
+}
+
+
+// =====================================================
+// DAMAGE ที่ไม่ติด INVINCIBILITY
+// ใช้กับพิษ
+// =====================================================
+
+function damagePlayerDirect(dmg){
+
+  G.hp =
+    Math.max(
+      0,
+      G.hp - dmg
+    );
+
+  showDamageText(dmg);
+
+  updateHUD();
+
+  if(G.hp <= 0){
+
+    doLose(
+      'พลังชีวิตหมด! คุณแพ้...'
+    );
+
+  }
+
+}
+
+
+// =====================================================
+// UPDATE DAMAGE TEXT
+// =====================================================
+
+function updateDamageTexts(){
+
+  if(!G.damageTexts){
+    return;
+  }
+
+  G.damageTexts =
+    G.damageTexts.filter(d => {
+
+      // ลอยขึ้น
+      d.y += d.vy;
+
+      d.vy *= 0.98;
+
+      d.life--;
+
+      return d.life > 0;
+
+    });
+
+}
+
+
+// =====================================================
+// DRAW DAMAGE TEXT
+// =====================================================
+
+function drawDamageTexts(){
+
+  if(!G.damageTexts){
+    return;
+  }
+
+  ctx.save();
+
+  ctx.textAlign = "center";
+
+  ctx.font =
+    '16px "Press Start 2P", monospace';
+
+
+  for(const d of G.damageTexts){
+
+    const sx =
+      d.x - G.camX;
+
+    const alpha =
+      Math.max(
+        0,
+        d.life / d.max
+      );
+
+    ctx.globalAlpha =
+      alpha;
+
+
+    // ขอบดำ
+    ctx.lineWidth = 4;
+
+    ctx.strokeStyle =
+      "#000";
+
+    ctx.strokeText(
+      d.text,
+      sx,
+      d.y
+    );
+
+
+    // ตัวเลขแดง
+    ctx.fillStyle =
+      "#ff2b2b";
+
+    ctx.fillText(
+      d.text,
+      sx,
+      d.y
+    );
+
+  }
+
+
+  ctx.restore();
+
+  ctx.globalAlpha = 1;
+
+}
+
+// =====================================================
+// GOBLIN MELEE AI
+// =====================================================
+
+function updateGoblinMelee(m){
+
+  const pCX = P.x + P.w / 2;
+  const pCY = P.y + P.h / 2;
+
+  const mCX = m.x + m.w / 2;
+  const mCY = m.y + m.h / 2;
+
+  const signedDX = pCX - mCX;
+
+  const dx = Math.abs(signedDX);
+  const dy = Math.abs(pCY - mCY);
+
+
+  // =====================================================
+  // ATTACK COOLDOWN
+  // =====================================================
+
+  if(m.attackCooldown > 0){
+    m.attackCooldown--;
+  }
+
+
+  // =====================================================
+  // กำลังโจมตี
+  // =====================================================
+
+  if(m.state === "attack"){
+
+    m.chasing = false;
+
+    m.attackT++;
+
+    // Attack.png มี 8 เฟรม
+    // 1 เฟรมภาพ = 5 game frames
+    const attackFrame =
+      Math.min(
+        7,
+        Math.floor(m.attackT / 5)
+      );
+
+
+    // ===================================================
+    // DAMAGE FRAME
+    // ให้โดนช่วงกลาง animation
+    // ===================================================
+
+    if(
+      attackFrame >= 4 &&
+      !m.didDamage
+    ){
+
+      // ให้การโจมตีครั้งนี้เช็ค damage แค่ครั้งเดียว
+      m.didDamage = true;
+
+
+      const newPCX =
+        P.x + P.w / 2;
+
+      const newPCY =
+        P.y + P.h / 2;
+
+      const newMCX =
+        m.x + m.w / 2;
+
+      const newMCY =
+        m.y + m.h / 2;
+
+
+      const hitDX =
+        Math.abs(newPCX - newMCX);
+
+      const hitDY =
+        Math.abs(newPCY - newMCY);
+
+
+      // ผู้เล่นต้องอยู่ด้านหน้าของ Goblin
+      const playerInFront =
+        m.dir > 0
+          ? newPCX > newMCX
+          : newPCX < newMCX;
+
+
+      if(
+        P.hurtT === 0 &&
+        hitDX < 65 &&
+        hitDY < 55 &&
+        playerInFront
+      ){
+
+        // ลด HP 15
+        hurtP(15);
+
+
+        // ===============================================
+        // KNOCKBACK
+        // ===============================================
+
+        P.vx =
+          m.dir * 7.5;
+
+        P.vy =
+          -4.5;
+
+
+        // ===============================================
+        // STUN 0.1 SECOND
+        // ===============================================
+
+        P.stunT = 6;
+
+      }
+
+    }
+
+
+    // ===================================================
+    // ATTACK FINISHED
+    // 8 frames × 5 = 40 game frames
+    // ===================================================
+
+    if(m.attackT >= 40){
+
+      m.state = "idle";
+
+      m.attackT = 0;
+
+      m.didDamage = false;
+
+      // พักก่อนตีใหม่
+      m.attackCooldown = 30;
+
+    }
+
+  }
+
+
+  // =====================================================
+  // ไม่ได้โจมตี
+  // =====================================================
+
+  else{
+
+    // เจอผู้เล่นในระยะ
+    if(
+      dx < 450 &&
+      dy < 160
+    ){
+
+      m.dir =
+        signedDX >= 0
+          ? 1
+          : -1;
+
+
+      // ===============================================
+      // เข้าใกล้พอแล้ว → ATTACK
+      // ===============================================
+
+      if(
+        dx < 55 &&
+        m.attackCooldown <= 0
+      ){
+
+        m.state = "attack";
+
+        m.attackT = 0;
+
+        m.didDamage = false;
+
+        m.chasing = false;
+
+      }
+
+      // ===============================================
+      // ยังอยู่ไกล → RUN
+      // ===============================================
+
+      else{
+
+        m.state = "run";
+
+        m.chasing = true;
+
+        const goblinSpeed = 1.7;
+
+        m.x +=
+          m.dir * goblinSpeed;
+
+      }
+
+    }
+
+    // ผู้เล่นอยู่ไกล
+    else{
+
+      m.state = "idle";
+
+      m.chasing = false;
+
+    }
+
+  }
+
+
+  // =====================================================
+  // GRAVITY
+  // =====================================================
+
+  m.vy += GRAVITY;
+
+  if(m.vy > 12){
+    m.vy = 12;
+  }
+
+  m.y += m.vy;
+
+  m.onGround = false;
+
+
+  // =====================================================
+  // PLATFORM COLLISION
+  // =====================================================
+
+  for(const pl of G.platforms){
+
+    if(
+      m.x + m.w > pl.x &&
+      m.x < pl.x + pl.w
+    ){
+
+      if(
+        m.y + m.h > pl.y &&
+        m.y + m.h < pl.y + pl.h + 18 &&
+        m.vy >= 0
+      ){
+
+        m.y =
+          pl.y - m.h;
+
+        m.vy = 0;
+
+        m.onGround = true;
+
+      }
+
+    }
+
+  }
+
+
+  // =====================================================
+  // ตกแมพ → กลับจุดเกิด
+  // =====================================================
+
+  if(m.y > CH + 100){
+
+    m.x = m.spawnX;
+    m.y = m.spawnY;
+
+    m.vy = 0;
+
+    m.state = "idle";
+    m.chasing = false;
+
+  }
+
+}
+
+// =====================================================
+// SKELETON MELEE AI
+// =====================================================
+
+function updateSkeletonMelee(m){
+
+  const pCX = P.x + P.w / 2;
+  const pCY = P.y + P.h / 2;
+
+  const mCX = m.x + m.w / 2;
+  const mCY = m.y + m.h / 2;
+
+  const signedDX = pCX - mCX;
+
+  const dx = Math.abs(signedDX);
+  const dy = Math.abs(pCY - mCY);
+
+
+  // ===============================================
+  // COOLDOWN
+  // ===============================================
+
+  if(m.attackCooldown > 0){
+    m.attackCooldown--;
+  }
+
+
+  // ===============================================
+  // ATTACK
+  // ===============================================
+
+  if(m.state === "attack"){
+
+    m.chasing = false;
+
+    m.attackT++;
+
+
+    // Attack มี 8 เฟรม
+    // Skeleton ฟันช้ากว่า Goblin เล็กน้อย
+    const attackFrame =
+      Math.min(
+        7,
+        Math.floor(m.attackT / 6)
+      );
+
+
+    // =============================================
+    // DAMAGE FRAME
+    // =============================================
+
+    if(
+      attackFrame >= 4 &&
+      !m.didDamage
+    ){
+
+      m.didDamage = true;
+
+
+      const newPCX =
+        P.x + P.w / 2;
+
+      const newPCY =
+        P.y + P.h / 2;
+
+      const newMCX =
+        m.x + m.w / 2;
+
+      const newMCY =
+        m.y + m.h / 2;
+
+
+      const hitDX =
+        Math.abs(newPCX - newMCX);
+
+      const hitDY =
+        Math.abs(newPCY - newMCY);
+
+
+      const playerInFront =
+        m.dir > 0
+          ? newPCX > newMCX
+          : newPCX < newMCX;
+
+
+      if(
+        P.hurtT === 0 &&
+        hitDX < 82 &&
+        hitDY < 60 &&
+        playerInFront
+      ){
+
+        // =========================================
+        // SKELETON DAMAGE = 30
+        // =========================================
+
+        hurtP(30);
+
+
+        // =========================================
+        // STRONG KNOCKBACK
+        // =========================================
+
+        P.vx =
+          m.dir * 9;
+
+        P.vy =
+          -5;
+
+
+        // stun 0.1 วินาที
+        P.stunT = 6;
+
+      }
+
+    }
+
+
+    // =============================================
+    // ATTACK FINISHED
+    // 8 frames × 6 = 48
+    // =============================================
+
+    if(m.attackT >= 48){
+
+      m.state = "idle";
+
+      m.attackT = 0;
+
+      m.didDamage = false;
+
+      // เว้นช่วงก่อนฟันครั้งต่อไป
+      m.attackCooldown = 42;
+
+    }
+
+  }
+
+
+  // ===============================================
+  // NORMAL MOVEMENT
+  // ===============================================
+
+  else{
+
+    // Skeleton มองเห็นไกลกว่า Goblin
+    if(
+      dx < 550 &&
+      dy < 180
+    ){
+
+      m.dir =
+        signedDX >= 0
+          ? 1
+          : -1;
+
+
+      // ใกล้มากแล้ว -> ฟัน
+      if(
+        dx < 70 &&
+        m.attackCooldown <= 0
+      ){
+
+        m.state = "attack";
+
+        m.attackT = 0;
+
+        m.didDamage = false;
+
+        m.chasing = false;
+
+      }
+
+
+      // ยังไม่ถึง -> เดินไล่
+      else{
+
+        m.state = "walk";
+
+        m.chasing = true;
+
+
+        // ช้ากว่า Goblin
+        const skeletonSpeed = 1.25;
+
+        m.x +=
+          m.dir * skeletonSpeed;
+
+      }
+
+    }
+
+    else{
+
+      m.state = "idle";
+
+      m.chasing = false;
+
+    }
+
+  }
+
+
+  // ===============================================
+  // GRAVITY
+  // ===============================================
+
+  m.vy += GRAVITY;
+
+  if(m.vy > 12){
+    m.vy = 12;
+  }
+
+  m.y += m.vy;
+
+  m.onGround = false;
+
+
+  // ===============================================
+  // PLATFORM COLLISION
+  // ===============================================
+
+  for(const pl of G.platforms){
+
+    if(
+      m.x + m.w > pl.x &&
+      m.x < pl.x + pl.w
+    ){
+
+      if(
+        m.y + m.h > pl.y &&
+        m.y + m.h < pl.y + pl.h + 18 &&
+        m.vy >= 0
+      ){
+
+        m.y =
+          pl.y - m.h;
+
+        m.vy = 0;
+
+        m.onGround = true;
+
+      }
+
+    }
+
+  }
+
+
+  // ===============================================
+  // ตกเหว -> กลับจุดเกิด
+  // ===============================================
+
+  if(m.y > CH + 100){
+
+    m.x = m.spawnX;
+    m.y = m.spawnY;
+
+    m.vy = 0;
+
+    m.state = "idle";
+    m.chasing = false;
+
+  }
+
+}
+
+// =====================================================
+// POISON MUSHROOM MELEE AI
+// =====================================================
+
+function updateMushroomMelee(m){
+
+  const pCX =
+    P.x + P.w / 2;
+
+  const pCY =
+    P.y + P.h / 2;
+
+  const mCX =
+    m.x + m.w / 2;
+
+  const mCY =
+    m.y + m.h / 2;
+
+
+  const signedDX =
+    pCX - mCX;
+
+  const dx =
+    Math.abs(signedDX);
+
+  const dy =
+    Math.abs(pCY - mCY);
+
+
+  // =====================================================
+  // COOLDOWN
+  // =====================================================
+
+  if(m.attackCooldown > 0){
+    m.attackCooldown--;
+  }
+
+
+  // =====================================================
+  // ATTACK
+  // =====================================================
+
+  if(m.state === "attack"){
+
+    m.chasing = false;
+
+    m.attackT++;
+
+
+    // Attack 8 frames
+    const attackFrame =
+      Math.min(
+        7,
+        Math.floor(m.attackT / 5)
+      );
+
+
+    // ===================================================
+    // DAMAGE FRAME
+    // ===================================================
+
+    if(
+      attackFrame >= 4 &&
+      !m.didDamage
+    ){
+
+      m.didDamage = true;
+
+
+      const newPCX =
+        P.x + P.w / 2;
+
+      const newPCY =
+        P.y + P.h / 2;
+
+      const newMCX =
+        m.x + m.w / 2;
+
+      const newMCY =
+        m.y + m.h / 2;
+
+
+      const hitDX =
+        Math.abs(
+          newPCX - newMCX
+        );
+
+      const hitDY =
+        Math.abs(
+          newPCY - newMCY
+        );
+
+
+      const playerInFront =
+        m.dir > 0
+          ? newPCX > newMCX
+          : newPCX < newMCX;
+
+
+      if(
+        P.hurtT === 0 &&
+        hitDX < 68 &&
+        hitDY < 58 &&
+        playerInFront
+      ){
+
+        // ===============================================
+        // BASE DAMAGE = 10
+        // ===============================================
+
+// ดาเมจจากการตี
+hurtP(10);
+
+
+// กระเด็น
+P.vx =
+  m.dir * 6.5;
+
+P.vy =
+  -4;
+
+
+// stun 0.1 วิ
+P.stunT = 6;
+
+
+// ติดพิษ
+applyPoison();
+
+      }
+
+    }
+
+
+    // ===================================================
+    // ATTACK FINISH
+    // ===================================================
+
+    if(m.attackT >= 40){
+
+      m.state =
+        "idle";
+
+      m.attackT = 0;
+
+      m.didDamage =
+        false;
+
+      m.attackCooldown =
+        34;
+
+    }
+
+  }
+
+
+  // =====================================================
+  // MOVEMENT
+  // =====================================================
+
+  else{
+
+    // เห็นผู้เล่นค่อนข้างไกล
+    if(
+      dx < 550 &&
+      dy < 200
+    ){
+
+      m.dir =
+        signedDX >= 0
+          ? 1
+          : -1;
+
+
+      // เข้าโจมตี
+      if(
+        dx < 62 &&
+        m.attackCooldown <= 0
+      ){
+
+        m.state =
+          "attack";
+
+        m.attackT = 0;
+
+        m.didDamage =
+          false;
+
+        m.chasing =
+          false;
+
+      }
+
+      // วิ่งไล่
+      else{
+
+        m.state =
+          "run";
+
+        m.chasing =
+          true;
+
+        const mushroomSpeed =
+          1.45;
+
+        m.x +=
+          m.dir *
+          mushroomSpeed;
+
+      }
+
+    }
+
+    else{
+
+      m.state =
+        "idle";
+
+      m.chasing =
+        false;
+
+    }
+
+  }
+
+
+  // =====================================================
+  // GRAVITY
+  // =====================================================
+
+  m.vy += GRAVITY;
+
+  if(m.vy > 12){
+    m.vy = 12;
+  }
+
+  m.y += m.vy;
+
+  m.onGround = false;
+
+
+  // =====================================================
+  // FLOOR COLLISION
+  // =====================================================
+
+  for(const pl of G.platforms){
+
+    if(
+      m.x + m.w > pl.x &&
+      m.x < pl.x + pl.w
+    ){
+
+      if(
+        m.y + m.h > pl.y &&
+        m.y + m.h <
+          pl.y + pl.h + 18 &&
+        m.vy >= 0
+      ){
+
+        m.y =
+          pl.y - m.h;
+
+        m.vy = 0;
+
+        m.onGround = true;
+
+      }
+
+    }
+
+  }
+
+
+  // =====================================================
+  // FALL RESET
+  // =====================================================
+
+  if(m.y > CH + 100){
+
+    m.x =
+      m.spawnX;
+
+    m.y =
+      m.spawnY;
+
+    m.vy = 0;
+
+    m.state =
+      "idle";
+
+    m.chasing =
+      false;
+
+  }
+
+}
+
+// =====================================================
+// POISON SYSTEM
+// =====================================================
+
+function applyPoison(){
+
+  // โดนพิษใหม่ = รีเซ็ตเป็น 3 tick
+  // ไม่ stack ซ้อนกัน
+  P.poisonTicksLeft = 3;
+
+  // 60 frames ≈ 1 วินาที
+  P.poisonTickT = 60;
+
+}
+
+
+function updatePoison(){
+
+  // ตอนตอบคำถาม ให้เวลาพิษหยุดไว้ก่อน
+  // จะได้ไม่ตายตอนกำลังพิมพ์คำตอบ 555
+  if(G.inQ){
+    return;
+  }
+
+  if(P.poisonTicksLeft <= 0){
+    return;
+  }
+
+
+  P.poisonTickT--;
+
+
+  if(P.poisonTickT <= 0){
+
+    // พิษ -5
+    damagePlayerDirect(5);
+
+    P.poisonTicksLeft--;
+
+
+    if(P.poisonTicksLeft > 0){
+
+      // รออีก 1 วิ
+      P.poisonTickT = 60;
+
+    }else{
+
+      P.poisonTickT = 0;
+
+    }
+
+  }
+
+}
+
+// =====================================================
+// FROST BOSS - DEATH
+// =====================================================
+
+function startFrostDeath(m){
+
+  if(!m)return;
+
+  m.bossMode = "death";
+  m.state = "death";
+
+  m.chasing = false;
+
+  m.attackT = 0;
+  m.attackCooldown = 0;
+
+  m.deathT = 0;
+
+}
+
+
+// =====================================================
+// FROST BOSS - EXIT PORTAL
+// =====================================================
+
+function spawnFrostExitPortal(m){
+
+  // กันประตูเกิดซ้ำ
+  if(m.portalSpawned)return;
+
+  m.portalSpawned = true;
+
+
+  const portalW = 72;
+  const portalH = 76;
+
+
+  G.portals.push({
+
+    // เกิดตรงกลางตำแหน่งที่บอสตาย
+    x:
+      m.x +
+      m.w / 2 -
+      portalW / 2,
+
+    // ให้ฐานประตูอยู่ระดับเดียวกับเท้าบอส
+    y:
+      m.y +
+      m.h -
+      portalH,
+
+    w: portalW,
+    h: portalH,
+
+    frame:0,
+    ft:0,
+    cooldown:0,
+
+
+    // กลับ Forest
+    targetX:8000,
+
+    targetY:
+      GY - 100,
+
+
+    // เอาไว้แยกจากประตูธรรมดา
+    isFrostExit:true
+
+  });
+
+}
+
+// =====================================================
+// FROST BOSS - START RAGE MODE
+// =====================================================
+
+function startFrostRage(m){
+
+  if(!m)return;
+
+  m.bossMode = "attack";
+
+  m.state = "walk";
+
+  m.chasing = true;
+
+  m.attackT = 0;
+
+  m.attackCooldown = 0;
+
+  m.didDamage = false;
+
+  // 10 วินาทีจริง
+  m.rageEndTime =
+    performance.now() + 10000;
+
+}
+
+// =====================================================
+// UPDATE FROST GUARDIAN
+// =====================================================
+
+function updateFrostBoss(m){
+
+  // =====================================================
+// DEATH MODE
+// =====================================================
+
+if(m.bossMode === "death"){
+
+  // หยุดทุกอย่าง
+  m.chasing = false;
+
+  m.state = "death";
+
+  m.vx = 0;
+
+
+  // เดิน Death timer
+  m.deathT++;
+
+
+  // death มี 16 frames
+  // เฟรมละ 6 game frames
+  // 16 x 6 = 96
+  if(m.deathT >= 96){
+
+    // เอฟเฟกต์หาย
+    spawnParts(
+      m.x + m.w / 2,
+      m.y + m.h / 2,
+      "#8ad8ff"
+    );
+
+
+    // สร้างประตู
+    spawnFrostExitPortal(m);
+
+
+    // บอสหายจริงหลัง animation จบ
+    m.alive = false;
+
+    m.bossMode = "gone";
+
+  }
+
+
+  return;
+}
+
+  const pCX =
+    P.x + P.w / 2;
+
+  const pCY =
+    P.y + P.h / 2;
+
+  const mCX =
+    m.x + m.w / 2;
+
+  const mCY =
+    m.y + m.h / 2;
+
+
+  const signedDX =
+    pCX - mCX;
+
+
+  const dx =
+    Math.abs(
+      signedDX
+    );
+
+
+  const dy =
+    Math.abs(
+      pCY - mCY
+    );
+
+
+  // ===================================================
+  // ตอนกำลังตอบคำถาม
+  // บอสหยุดเดิน
+  // ===================================================
+
+  if(G.inQ){
+
+    m.state = "idle";
+    m.chasing = false;
+
+    return;
+  }
+
+
+  // ===================================================
+  // QUIZ MODE
+  // ===================================================
+
+  if(m.bossMode === "quiz"){
+
+    // หันหาผู้เล่น
+    m.dir =
+      pCX > mCX
+        ? 1
+        : -1;
+
+
+    // เห็นผู้เล่นไกลมาก
+    if(
+      dx < 750 &&
+      dy < 220
+    ){
+
+      m.chasing = true;
+      m.state = "walk";
+
+
+      // เดินช้ากว่ามอนสเตอร์ทั่วไปนิดหน่อย
+      const bossSpeed = 1.55;
+
+      m.x +=
+        m.dir *
+        bossSpeed;
+
+    }
+
+    else{
+
+      m.chasing = false;
+      m.state = "idle";
+
+    }
+
+
+    // ===============================================
+    // ชนผู้เล่น -> HARD QUESTION
+    // ===============================================
+
+    if(
+      dx < 62 &&
+      dy < 75
+    ){
+
+      m.state = "idle";
+      m.chasing = false;
+
+      triggerQ(m);
+
+      return;
+    }
+
+  }
+
+  // ===================================================
+// ATTACK / RAGE MODE
+// ===================================================
+
+else if(m.bossMode === "attack"){
+
+  // ===============================================
+  // ครบ 10 วินาที
+  // ===============================================
+
+  if(
+    performance.now() >=
+    m.rageEndTime
+  ){
+
+    m.bossMode = "quiz";
+
+    m.state = "idle";
+
+    m.chasing = false;
+
+    m.attackT = 0;
+
+    m.attackCooldown = 0;
+
+    m.didDamage = false;
+
+    // กันคำถามเด้งใส่หน้าทันที
+    m.quizCooldown = 90;
+
+    return;
+  }
+
+
+  // ===============================================
+  // หันเข้าหาผู้เล่น
+  // ===============================================
+
+  m.dir =
+    signedDX >= 0
+      ? 1
+      : -1;
+
+
+  if(m.attackCooldown > 0){
+    m.attackCooldown--;
+  }
+
+
+  // ===============================================
+  // กำลังโจมตี
+  // ===============================================
+
+  if(m.state === "attack"){
+
+    m.chasing = false;
+
+    m.attackT++;
+
+
+    // 1_atk = 14 frames
+    // frame ละ 4 game frames
+    const attackFrame =
+      Math.min(
+        13,
+        Math.floor(
+          m.attackT / 4
+        )
+      );
+
+
+    // =============================================
+    // จังหวะฟันโดน
+    // =============================================
+
+    if(
+      attackFrame >= 7 &&
+      !m.didDamage
+    ){
+
+      // โจมตีนี้เช็กดาเมจครั้งเดียว
+      m.didDamage = true;
+
+
+      const hitPCX =
+        P.x + P.w / 2;
+
+      const hitPCY =
+        P.y + P.h / 2;
+
+      const hitMCX =
+        m.x + m.w / 2;
+
+      const hitMCY =
+        m.y + m.h / 2;
+
+
+      const hitDX =
+        Math.abs(
+          hitPCX - hitMCX
+        );
+
+      const hitDY =
+        Math.abs(
+          hitPCY - hitMCY
+        );
+
+
+      const playerInFront =
+        m.dir > 0
+          ? hitPCX > hitMCX
+          : hitPCX < hitMCX;
+
+
+      if(
+        P.hurtT === 0 &&
+        hitDX < 125 &&
+        hitDY < 105 &&
+        playerInFront
+      ){
+
+        // =========================================
+        // FROST GUARDIAN DAMAGE = 35
+        // =========================================
+
+        hurtP(35);
+
+
+        // Knockback แรง
+        P.vx =
+          m.dir * 10;
+
+        P.vy =
+          -5.5;
+
+
+        // stun 0.1 วิ
+        P.stunT = 6;
+
+      }
+
+    }
+
+
+    // =============================================
+    // Attack animation จบ
+    // 14 frames × 4 = 56
+    // =============================================
+
+    if(m.attackT >= 56){
+
+      m.state = "walk";
+
+      m.attackT = 0;
+
+      m.didDamage = false;
+
+      // เว้นก่อนฟันใหม่
+      m.attackCooldown = 24;
+
+    }
+
+  }
+
+
+  // ===============================================
+  // ยังไม่ได้ฟัน
+  // ===============================================
+
+  else{
+
+    // ใกล้พอ -> Attack
+    if(
+      dx < 105 &&
+      dy < 110 &&
+      m.attackCooldown <= 0
+    ){
+
+      m.state = "attack";
+
+      m.chasing = false;
+
+      m.attackT = 0;
+
+      m.didDamage = false;
+
+    }
+
+    // ไกล -> วิ่งไล่
+    else{
+
+      m.state = "walk";
+
+      m.chasing = true;
+
+
+      // Rage เร็วกว่า Quiz mode
+      const rageSpeed = 2.45;
+
+
+      m.x +=
+        m.dir * rageSpeed;
+
+    }
+
+  }
+
+}
+
+
+  // ===================================================
+  // GRAVITY
+  // ===================================================
+
+  m.vy += GRAVITY;
+
+  if(m.vy > 12){
+    m.vy = 12;
+  }
+
+  m.y += m.vy;
+
+  m.onGround = false;
+
+
+  // ===================================================
+  // FLOOR COLLISION
+  // ===================================================
+
+  for(const pl of G.platforms){
+
+    if(
+      m.x + m.w > pl.x &&
+      m.x < pl.x + pl.w
+    ){
+
+      if(
+        m.y + m.h > pl.y &&
+        m.y + m.h <
+          pl.y + pl.h + 18 &&
+        m.vy >= 0
+      ){
+
+        m.y =
+          pl.y - m.h;
+
+        m.vy = 0;
+
+        m.onGround = true;
+
+      }
+
+    }
+
+  }
+
 }
 
 // ========== MONSTERS UPDATE ==========
 const CHASE_RANGE=220; // ระยะที่มอนสเตอร์เริ่มวิ่งไล่
 
 function updateMonsters(){
-  const aliveMonsters=G.monsters.filter(m=>m.alive&&!m.isBoss);
+  const aliveMonsters = G.monsters.filter(m =>
+  m.alive &&
+  !m.isBoss &&
+
+  // Dungeon Quiz ไม่ใช้ระบบชนกันแล้ว stun ของ Forest
+  m.combatType !== "quiz"
+);
   // Check monster-monster collisions => stun 2 seconds
   for(let i=0;i<aliveMonsters.length;i++){
     for(let j=i+1;j<aliveMonsters.length;j++){
@@ -2490,11 +8163,57 @@ function updateMonsters(){
     if(!m.alive){m.dt++;continue;}
     if(m.stunT>0){m.stunT--;continue;} // STUNNED — cannot move
 
+    // =====================================================
+// FROST BOSS
+// ตอนนี้ TEST แค่ภาพก่อน
+// =====================================================
+
+if(m.enemyKind === "frostBoss"){
+
+  updateFrostBoss(m);
+
+  continue;
+}
+
     // คำนวณ dx/dy ระหว่างผู้เล่นกับมอนสเตอร์
     const pCX=P.x+P.w/2, pCY=P.y+P.h/2;
     const mCX=m.x+m.w/2, mCY=m.y+m.h/2;
     const dx=Math.abs(pCX-mCX);
     const dy=Math.abs(pCY-mCY);
+
+    // =====================================================
+// DUNGEON MELEE MONSTER
+// =====================================================
+
+if(
+  m.combatType === "melee" &&
+  m.enemyKind === "goblin"
+){
+
+  updateGoblinMelee(m);
+
+  continue;
+}
+
+if(
+  m.combatType === "melee" &&
+  m.enemyKind === "skeleton"
+){
+
+  updateSkeletonMelee(m);
+
+  continue;
+}
+
+if(
+  m.combatType === "melee" &&
+  m.enemyKind === "mushroom"
+){
+
+  updateMushroomMelee(m);
+
+  continue;
+}
 
 if(m.isBoss){
 
@@ -2562,6 +8281,40 @@ if(m.chasing){
   }
   m.x += m.dir * 0.9;
 }
+
+// =====================================================
+// DUNGEON QUIZ PATROL LIMIT
+// กันเดินตกออกจากเกาะ
+// =====================================================
+
+if(
+  m.combatType === "quiz" &&
+  m.patrolMinX !== undefined
+){
+
+  if(m.x < m.patrolMinX){
+
+    m.x =
+      m.patrolMinX;
+
+    m.dir =
+      1;
+
+  }
+
+
+  if(m.x > m.patrolMaxX){
+
+    m.x =
+      m.patrolMaxX;
+
+    m.dir =
+      -1;
+
+  }
+
+}
+
 m.vy += GRAVITY;
 
 if(m.vy > 12){
@@ -2680,33 +8433,295 @@ function drawLayerScaled(img, speed){
   }
 }
 
-// ========== DRAW FANTASY SWAMP BACKGROUND ==========
+// =====================================================
+// DRAW CAVE PARALLAX LAYER
+//
+// รูปต้นฉบับ 384x216
+// ขยายตามความสูง Canvas
+// และรักษาสัดส่วนเดิม
+// =====================================================
+
+function drawCaveLayer(img, speed){
+
+  if(
+    !img.complete ||
+    img.naturalWidth === 0
+  ){
+    return;
+  }
+
+  // ขยายตามความสูงของจอ
+  const scale =
+    CH / img.height;
+
+  const drawW =
+    img.width * scale;
+
+  const drawH =
+    img.height * scale;
+
+
+  // Parallax offset
+  const offset =
+    -((G.camX * speed) % drawW);
+
+
+  // ต่อภาพแนวนอนให้ไม่มีช่องว่าง
+  for(
+    let x = offset - drawW;
+    x < CW + drawW;
+    x += drawW
+  ){
+
+    ctx.drawImage(
+      img,
+
+      Math.round(x),
+      0,
+
+      Math.ceil(drawW) + 1,
+      Math.ceil(drawH)
+    );
+
+  }
+
+}
+
+// =====================================================
+// DUNGEON PARALLAX
+//
+// ไฟล์:
+// 1 = ใกล้สุด
+// 7 = ไกลสุด
+//
+// เวลาวาด:
+// 7 → 6 → 5 → 4 → 3 → 2 → 1
+// =====================================================
+
+function drawDungeonParallax(){
+
+  // สีรองพื้น
+  // เผื่อบาง layer มีพื้นที่โปร่งใส
+  ctx.fillStyle = "#505765";
+  ctx.fillRect(
+    0,
+    0,
+    CW,
+    CH
+  );
+
+
+  // =====================================
+  // FAR → NEAR
+  // =====================================
+
+  // 7 = ไกลสุด
+  drawCaveLayer(
+    caveLayer7,
+    0.02
+  );
+
+  drawCaveLayer(
+    caveLayer6,
+    0.04
+  );
+
+  drawCaveLayer(
+    caveLayer5,
+    0.07
+  );
+
+  drawCaveLayer(
+    caveLayer4,
+    0.10
+  );
+
+  drawCaveLayer(
+    caveLayer3,
+    0.14
+  );
+
+  drawCaveLayer(
+    caveLayer2,
+    0.18
+  );
+
+  // 1 = ใกล้สุด
+  drawCaveLayer(
+    caveLayer1,
+    0.23
+  );
+
+}
+
+// =====================================================
+// DRAW BACKGROUND
+//
+// Forest  : x < DUNGEON_START
+// Dungeon : x >= DUNGEON_START
+// =====================================================
 
 function drawBG(){
 
-  // สีฟ้าอ่อนด้านหลังสุด
-  ctx.fillStyle = "#dce3ef";
-  ctx.fillRect(0,0,CW,CH);
+  // ===================================================
+  // DUNGEON
+  // ===================================================
 
-  // BG_3 (ไกลสุด)
+  if(P.x >= DUNGEON_START){
+
+    drawDungeonParallax();
+
+    return;
+  }
+
+
+  // ===================================================
+  // FOREST
+  // ===================================================
+
+  // สีพื้นหลัง Forest
+  ctx.fillStyle = "#dce3ef";
+  ctx.fillRect(
+    0,
+    0,
+    CW,
+    CH
+  );
+
+
+  // Forest layer ไกลสุด
   drawLayer(
     bg3,
     0.05,
     0
   );
 
-  // BG_2 (กลาง)
-drawLayer(
-  bg2,
-  0.15,
-  0
-);
 
-  // BG_1 (ใกล้สุด)
-drawLayerScaled(
-  bg1,
-  0.25
-);
+  // Forest layer กลาง
+  drawLayer(
+    bg2,
+    0.15,
+    0
+  );
+
+
+  // Forest layer ใกล้สุด
+  drawLayerScaled(
+    bg1,
+    0.25
+  );
+
+
+}
+
+function drawDungeon(){
+
+  if(
+    !dungeonTiles.complete ||
+    !G.dungeonTiles
+  ){
+    return;
+  }
+
+  ctx.imageSmoothingEnabled = false;
+
+  for(const t of G.dungeonTiles){
+
+    const drawW =
+      t.dw ?? t.sw * 2;
+
+    const drawH =
+      t.dh ?? t.sh * 2;
+
+    const screenX =
+      Math.round(t.x - G.camX);
+
+    const screenY =
+      Math.round(t.y);
+
+
+    ctx.save();
+
+    ctx.imageSmoothingEnabled = false;
+
+
+    if(t.flipH){
+
+      ctx.translate(
+        screenX + drawW,
+        screenY
+      );
+
+      ctx.scale(-1,1);
+
+      ctx.drawImage(
+        dungeonTiles,
+
+        t.sx,
+        t.sy,
+        t.sw,
+        t.sh,
+
+        0,
+        0,
+
+        drawW,
+        drawH
+      );
+
+    }else{
+
+      ctx.drawImage(
+        dungeonTiles,
+
+        t.sx,
+        t.sy,
+        t.sw,
+        t.sh,
+
+        screenX,
+        screenY,
+
+        drawW,
+        drawH
+      );
+
+    }
+
+    ctx.restore();
+
+  }
+
+}
+
+function drawRepeatingBG(
+  img,
+  speed,
+  y = 0,
+  scale = 2
+){
+
+  if(!img.complete) return;
+
+  const drawW = img.width * scale;
+  const drawH = img.height * scale;
+
+  const offset =
+    -((G.camX * speed) % drawW);
+
+  for(
+    let x = offset - drawW;
+    x < CW + drawW;
+    x += drawW
+  ){
+    ctx.drawImage(
+      img,
+      Math.round(x),
+      Math.round(y),
+      drawW,
+      drawH
+    );
+  }
 
 }
 
@@ -2879,6 +8894,991 @@ function drawProps(){
 
 }
 
+function drawDungeonDecos(){
+
+  if(!G.dungeonDecos) return;
+
+  for(const d of G.dungeonDecos){
+
+    const dx =
+      Math.round(
+        d.x - G.camX
+      );
+
+    if(
+      dx < -d.w ||
+      dx > CW + d.w
+    ){
+      continue;
+    }
+
+    if(!d.img.complete) continue;
+
+    ctx.save();
+
+    ctx.imageSmoothingEnabled = false;
+
+    ctx.drawImage(
+      d.img,
+      dx,
+      Math.round(d.y),
+      d.w,
+      d.h
+    );
+
+    ctx.restore();
+  }
+}
+
+// =====================================================
+// ADD DUNGEON PROP
+//
+// x = จุดกึ่งกลางของ prop
+// groundY = ระดับพื้นที่ prop ยืน
+// height = ความสูงที่ต้องการ
+// =====================================================
+
+function addDungeonProp(
+  img,
+  x,
+  groundY,
+  height,
+  flipH = false,
+  yOffset = 0,
+  layer = 1
+){
+
+  G.dungeonProps.push({
+
+    img: img,
+
+    x: x,
+
+    groundY:
+      groundY + yOffset,
+
+    h: height,
+
+    flipH: flipH,
+
+    layer: layer
+
+  });
+
+}
+
+// =====================================================
+// DRAW DUNGEON PROPS
+// =====================================================
+
+function drawDungeonProps(){
+
+  if(!G.dungeonProps) return;
+
+
+  // layer น้อยวาดก่อน
+  // เช่น fence/tree อยู่หลัง grave/rock
+  const props =
+    [...G.dungeonProps]
+    .sort((a,b)=>a.layer-b.layer);
+
+
+  for(const p of props){
+
+    if(
+      !p.img.complete ||
+      p.img.naturalWidth === 0
+    ){
+      continue;
+    }
+
+
+    // รักษาสัดส่วนรูปจริง
+    const ratio =
+      p.img.naturalWidth /
+      p.img.naturalHeight;
+
+    const drawH =
+      p.h;
+
+    const drawW =
+      drawH * ratio;
+
+
+    // x ที่ส่งมา = จุดกึ่งกลาง
+    const sx =
+      Math.round(
+        p.x -
+        G.camX -
+        drawW / 2
+      );
+
+    const sy =
+      Math.round(
+        p.groundY -
+        drawH
+      );
+
+
+    // ไม่วาดถ้าอยู่นอกจอ
+    if(
+      sx > CW + 150 ||
+      sx + drawW < -150
+    ){
+      continue;
+    }
+
+
+    ctx.save();
+
+    ctx.imageSmoothingEnabled = false;
+
+
+    if(p.flipH){
+
+      ctx.translate(
+        sx + drawW,
+        sy
+      );
+
+      ctx.scale(-1,1);
+
+      ctx.drawImage(
+        p.img,
+        0,
+        0,
+        drawW,
+        drawH
+      );
+
+    }else{
+
+      ctx.drawImage(
+        p.img,
+        sx,
+        sy,
+        drawW,
+        drawH
+      );
+
+    }
+
+
+    ctx.restore();
+
+  }
+
+}
+
+// =====================================================
+// DRAW DUNGEON GOBLIN
+// =====================================================
+
+function drawGoblin(m, sx){
+
+  let img = goblinIdle;
+
+  let frames = 4;
+
+  let frame = 0;
+
+
+  // =====================================================
+  // IDLE
+  // =====================================================
+
+  if(m.state === "idle"){
+
+    img = goblinIdle;
+
+    frames = 4;
+
+    frame =
+      Math.floor(
+        Date.now() / 140
+      ) % frames;
+
+  }
+
+
+  // =====================================================
+  // RUN
+  // =====================================================
+
+  else if(m.state === "run"){
+
+    img = goblinRun;
+
+    frames = 8;
+
+    frame =
+      Math.floor(
+        Date.now() / 85
+      ) % frames;
+
+  }
+
+
+  // =====================================================
+  // ATTACK
+  // =====================================================
+
+  else if(m.state === "attack"){
+
+    img = goblinAttack;
+
+    frames = 8;
+
+    frame =
+      Math.min(
+        7,
+        Math.floor(m.attackT / 5)
+      );
+
+  }
+
+
+  if(
+    !img.complete ||
+    img.naturalWidth === 0
+  ){
+    return;
+  }
+
+
+  const frameW =
+    img.width / frames;
+
+  const frameH =
+    img.height;
+
+
+  // ขนาด Goblin บนจอ
+  const drawW = 160;
+  const drawH = 160;
+
+
+  const drawX =
+    sx +
+    m.w / 2 -
+    drawW / 2;
+
+
+  // +24 ชดเชยพื้นที่โปร่งใสใน sprite
+const drawY =
+  m.y +
+  m.h -
+  drawH +
+  56;
+
+
+  // เงา
+  ctx.fillStyle =
+    "rgba(0,0,0,0.25)";
+
+  ctx.fillRect(
+    sx + 3,
+    m.y + m.h - 2,
+    m.w - 6,
+    5
+  );
+
+
+  ctx.save();
+
+  ctx.imageSmoothingEnabled =
+    false;
+
+
+  // =====================================================
+  // FLIP
+  // =====================================================
+
+  if(m.dir < 0){
+
+    ctx.translate(
+      drawX + drawW / 2,
+      0
+    );
+
+    ctx.scale(-1,1);
+
+    ctx.drawImage(
+
+      img,
+
+      frame * frameW,
+      0,
+
+      frameW,
+      frameH,
+
+      -drawW / 2,
+      drawY,
+
+      drawW,
+      drawH
+
+    );
+
+  }
+
+  else{
+
+    ctx.drawImage(
+
+      img,
+
+      frame * frameW,
+      0,
+
+      frameW,
+      frameH,
+
+      drawX,
+      drawY,
+
+      drawW,
+      drawH
+
+    );
+
+  }
+
+  ctx.restore();
+
+}
+
+// =====================================================
+// DRAW DUNGEON SKELETON
+// =====================================================
+
+function drawSkeleton(m, sx){
+
+  let img = skeletonIdle;
+
+  let frames = 4;
+
+  let frame = 0;
+
+
+  // ===============================================
+  // IDLE
+  // ===============================================
+
+  if(m.state === "idle"){
+
+    img = skeletonIdle;
+
+    frames = 4;
+
+    frame =
+      Math.floor(
+        Date.now() / 150
+      ) % frames;
+
+  }
+
+
+  // ===============================================
+  // WALK
+  // ===============================================
+
+  else if(m.state === "walk"){
+
+    img = skeletonWalk;
+
+    frames = 4;
+
+    frame =
+      Math.floor(
+        Date.now() / 120
+      ) % frames;
+
+  }
+
+
+  // ===============================================
+  // ATTACK
+  // ===============================================
+
+  else if(m.state === "attack"){
+
+    img = skeletonAttack;
+
+    frames = 8;
+
+    frame =
+      Math.min(
+        7,
+        Math.floor(m.attackT / 6)
+      );
+
+  }
+
+
+  if(
+    !img.complete ||
+    img.naturalWidth === 0
+  ){
+    return;
+  }
+
+
+  const frameW =
+    img.width / frames;
+
+  const frameH =
+    img.height;
+
+
+  // Skeleton ให้ตัวใหญ่กว่า Goblin นิดหนึ่ง
+  const drawW = 175;
+  const drawH = 175;
+
+
+  const drawX =
+    sx +
+    m.w / 2 -
+    drawW / 2;
+
+
+  const drawY =
+    m.y +
+    m.h -
+    drawH +
+    62;
+
+
+  // เงา
+  ctx.fillStyle =
+    "rgba(0,0,0,0.25)";
+
+  ctx.fillRect(
+    sx + 3,
+    m.y + m.h - 2,
+    m.w - 6,
+    5
+  );
+
+
+  ctx.save();
+
+  ctx.imageSmoothingEnabled =
+    false;
+
+
+  // Sprite ต้นฉบับหันขวา
+  if(m.dir < 0){
+
+    ctx.translate(
+      drawX + drawW / 2,
+      0
+    );
+
+    ctx.scale(-1,1);
+
+    ctx.drawImage(
+
+      img,
+
+      frame * frameW,
+      0,
+
+      frameW,
+      frameH,
+
+      -drawW / 2,
+      drawY,
+
+      drawW,
+      drawH
+
+    );
+
+  }
+
+  else{
+
+    ctx.drawImage(
+
+      img,
+
+      frame * frameW,
+      0,
+
+      frameW,
+      frameH,
+
+      drawX,
+      drawY,
+
+      drawW,
+      drawH
+
+    );
+
+  }
+
+  ctx.restore();
+
+}
+
+// =====================================================
+// DRAW POISON MUSHROOM
+// =====================================================
+
+function drawDungeonMushroom(m, sx){
+
+  let img =
+    dungeonMushroomIdle;
+
+  let frames = 4;
+
+  let frame = 0;
+
+
+  // IDLE
+  if(m.state === "idle"){
+
+    img =
+      dungeonMushroomIdle;
+
+    frames = 4;
+
+    frame =
+      Math.floor(
+        Date.now() / 140
+      ) % frames;
+
+  }
+
+
+  // RUN
+  else if(m.state === "run"){
+
+    img =
+      dungeonMushroomRun;
+
+    frames = 8;
+
+    frame =
+      Math.floor(
+        Date.now() / 85
+      ) % frames;
+
+  }
+
+
+  // ATTACK
+  else if(m.state === "attack"){
+
+    img =
+      dungeonMushroomAttack;
+
+    frames = 8;
+
+    frame =
+      Math.min(
+        7,
+        Math.floor(m.attackT / 5)
+      );
+
+  }
+
+
+  if(
+    !img.complete ||
+    img.naturalWidth === 0
+  ){
+    return;
+  }
+
+
+  const frameW =
+    img.width / frames;
+
+  const frameH =
+    img.height;
+
+
+  // ขนาดเริ่มต้น
+  const drawW = 160;
+  const drawH = 160;
+
+
+  const drawX =
+    sx +
+    m.w / 2 -
+    drawW / 2;
+
+
+  const drawY =
+    m.y +
+    m.h -
+    drawH +
+    58;
+
+
+  // SHADOW
+  ctx.fillStyle =
+    "rgba(0,0,0,0.25)";
+
+  ctx.fillRect(
+    sx + 3,
+    m.y + m.h - 2,
+    m.w - 6,
+    5
+  );
+
+
+  ctx.save();
+
+  ctx.imageSmoothingEnabled =
+    false;
+
+
+  // หันซ้าย
+  if(m.dir < 0){
+
+    ctx.translate(
+      drawX + drawW / 2,
+      0
+    );
+
+    ctx.scale(-1,1);
+
+
+    ctx.drawImage(
+
+      img,
+
+      frame * frameW,
+      0,
+
+      frameW,
+      frameH,
+
+      -drawW / 2,
+      drawY,
+
+      drawW,
+      drawH
+
+    );
+
+  }
+
+  // หันขวา
+  else{
+
+    ctx.drawImage(
+
+      img,
+
+      frame * frameW,
+      0,
+
+      frameW,
+      frameH,
+
+      drawX,
+      drawY,
+
+      drawW,
+      drawH
+
+    );
+
+  }
+
+
+  ctx.restore();
+
+}
+
+// =====================================================
+// DUNGEON QUIZ HARD MARK
+// จุดแดง 3 จุด = LV.3 HARD
+// =====================================================
+
+function drawDungeonQuizHardMark(
+  m,
+  sx
+){
+
+  ctx.save();
+
+  ctx.fillStyle =
+    "#e03c28";
+
+
+  // อยู่เหนือหัว Sprite Dungeon
+  const markY =
+    m.y - 42;
+
+
+  ctx.fillRect(
+    sx + m.w/2 - 13,
+    markY,
+    6,
+    6
+  );
+
+
+  ctx.fillRect(
+    sx + m.w/2 - 3,
+    markY,
+    6,
+    6
+  );
+
+
+  ctx.fillRect(
+    sx + m.w/2 + 7,
+    markY,
+    6,
+    6
+  );
+
+
+  ctx.restore();
+
+}
+
+// =====================================================
+// DRAW FROST GUARDIAN
+// =====================================================
+
+// =====================================================
+// DRAW FROST GUARDIAN - SAFE VERSION
+// =====================================================
+
+function drawFrostBoss(m, sx){
+
+  let frames;
+  let animSpeed;
+
+  // ===============================================
+// DEATH
+// ===============================================
+
+if(m.state === "death"){
+
+  frames =
+    frostDeathFrames;
+
+  animSpeed =
+    100;
+
+}
+
+
+  // ===============================================
+// ATTACK
+// ===============================================
+
+if(m.state === "attack"){
+
+  frames =
+    frostAttackFrames;
+
+  animSpeed =
+    90;
+
+}
+
+// ===============================================
+// WALK
+// ===============================================
+
+else if(m.state === "walk"){
+
+  frames =
+    frostWalkFrames;
+
+  animSpeed =
+    90;
+
+}
+
+// ===============================================
+// IDLE
+// ===============================================
+
+else{
+
+  frames =
+    frostIdleFrames;
+
+  animSpeed =
+    140;
+
+}
+
+
+let frame;
+
+
+// Attack ให้ตรงกับ hit frame ของ AI
+if(m.state === "attack"){
+
+  frame =
+    Math.min(
+      13,
+      Math.floor(
+        m.attackT / 4
+      )
+    );
+
+}
+
+else{
+
+  frame =
+    Math.floor(
+      Date.now() /
+      animSpeed
+    ) %
+    frames.length;
+
+}
+
+
+  let img =
+    frames[frame];
+
+
+  // ถ้า frame ปัจจุบันมีปัญหา
+  // ใช้ idle_1 เป็นตัวสำรอง
+  if(
+    !img ||
+    !img.complete ||
+    img.naturalWidth === 0
+  ){
+
+    img =
+      frostIdleFrames[0];
+
+  }
+
+
+  // ถ้ายังไม่มีรูปจริง ๆ
+  // ค่อยหยุดวาด
+  if(
+    !img ||
+    !img.complete ||
+    img.naturalWidth === 0
+  ){
+
+    return;
+
+  }
+
+
+  // ===============================================
+  // SIZE
+  // ===============================================
+
+  const drawW = 360;
+  const drawH = 240;
+
+
+  // เอากึ่งกลางภาพตรงกับ hitbox บอส
+  const centerX =
+    sx + m.w / 2;
+
+
+  const drawX =
+    centerX - drawW / 2;
+
+
+  // ปรับเท้าตรงนี้
+  const drawY =
+    m.y +
+    m.h -
+    drawH +
+    40;
+
+
+  // ===============================================
+  // SHADOW
+  // ===============================================
+
+  ctx.save();
+
+  ctx.fillStyle =
+    "rgba(0,0,0,0.30)";
+
+  ctx.fillRect(
+    centerX - 32,
+    m.y + m.h - 3,
+    64,
+    7
+  );
+
+  ctx.restore();
+
+
+  // ===============================================
+  // DRAW
+  // ตอนนี้ยังไม่ FLIP
+  // ===============================================
+
+ ctx.save();
+
+ctx.imageSmoothingEnabled =
+  false;
+
+ctx.globalAlpha =
+  1;
+
+
+// =====================================================
+// FROST BOSS FACING
+// sprite ต้นฉบับหันซ้าย
+// =====================================================
+
+// เดินไปขวา -> กลับภาพ
+if(m.dir > 0){
+
+  ctx.translate(
+    drawX + drawW,
+    0
+  );
+
+  ctx.scale(
+    -1,
+    1
+  );
+
+  ctx.drawImage(
+    img,
+    0,
+    drawY,
+    drawW,
+    drawH
+  );
+
+}
+
+// เดินไปซ้าย -> ใช้ภาพเดิม
+else{
+
+  ctx.drawImage(
+    img,
+    drawX,
+    drawY,
+    drawW,
+    drawH
+  );
+
+}
+
+
+ctx.restore();
+
+}
 
 // ========== DRAW MONSTERS ==========
 function drawMonsters(){
@@ -2889,6 +9889,175 @@ function drawMonsters(){
 
   const sx=m.x-G.camX;
     if(sx<-120||sx>CW+120)continue;
+
+// Dungeon Goblin ใช้ sprite sheet ของตัวเอง
+if(m.enemyKind === "goblin"){
+
+  drawGoblin(
+    m,
+    sx
+  );
+
+  continue;
+}
+
+// =====================================================
+// FROST GUARDIAN BOSS
+// =====================================================
+
+if(m.enemyKind === "frostBoss"){
+
+  // Death จบแล้วไม่ต้องวาดอีก
+  if(!m.alive){
+    continue;
+  }
+
+
+  drawFrostBoss(
+    m,
+    sx
+  );
+
+  continue;
+}
+
+if(m.enemyKind === "skeleton"){
+
+  drawSkeleton(
+    m,
+    sx
+  );
+
+  continue;
+}
+
+if(m.enemyKind === "mushroom"){
+
+  drawDungeonMushroom(
+    m,
+    sx
+  );
+
+  continue;
+}
+
+// =====================================================
+// DUNGEON QUIZ MONSTERS
+// =====================================================
+
+
+// -----------------------------------------------------
+// QUIZ GOBLIN
+// -----------------------------------------------------
+
+if(
+  m.enemyKind ===
+  "quizGoblin"
+){
+
+  // ตอบถูกแล้วให้หาย
+  if(!m.alive){
+    continue;
+  }
+
+
+  // Generic AI เป็นคนบอก chasing
+  // เราแค่เลือก animation
+  m.state =
+    m.chasing
+      ? "run"
+      : "idle";
+
+
+  drawGoblin(
+    m,
+    sx
+  );
+
+
+  drawDungeonQuizHardMark(
+    m,
+    sx
+  );
+
+
+  continue;
+}
+
+
+
+// -----------------------------------------------------
+// QUIZ SKELETON
+// -----------------------------------------------------
+
+if(
+  m.enemyKind ===
+  "quizSkeleton"
+){
+
+  if(!m.alive){
+    continue;
+  }
+
+
+  m.state =
+    m.chasing
+      ? "walk"
+      : "idle";
+
+
+  drawSkeleton(
+    m,
+    sx
+  );
+
+
+  drawDungeonQuizHardMark(
+    m,
+    sx
+  );
+
+
+  continue;
+}
+
+
+
+// -----------------------------------------------------
+// QUIZ MUSHROOM
+// -----------------------------------------------------
+
+if(
+  m.enemyKind ===
+  "quizMushroom"
+){
+
+  if(!m.alive){
+    continue;
+  }
+
+
+  m.state =
+    m.chasing
+      ? "run"
+      : "idle";
+
+
+  drawDungeonMushroom(
+    m,
+    sx
+  );
+
+
+  drawDungeonQuizHardMark(
+    m,
+    sx
+  );
+
+
+  continue;
+}
+
     const imgKey=m.isBoss?'boss':(m.type.imgKey||null);
     let mImg=imgKey?getMImg(imgKey):null;
 
@@ -3043,9 +10212,32 @@ function drawPlatforms(){
 
   for(const p of G.platforms){
 
+    if(p.noDraw) continue;
+
     const sx = p.x - G.camX;
 
     if(sx > CW+100 || sx+p.w < -100) continue;
+
+
+    // =========================
+    // DUNGEON COLLIDER
+    // ไม่ต้องวาด เพราะ drawDungeon()
+    // เป็นคนวาด Tile Set อยู่แล้ว
+    // =========================
+
+    if(
+      p.t === "dg" ||
+      p.t === "dg-platform" ||
+      p.t === "dg-wall" ||
+      p.t === "dg-ceiling"
+    ){
+      continue;
+    }
+
+
+    // =========================
+    // FOREST
+    // =========================
 
     if(p.t === "g"){
 
@@ -3064,30 +10256,29 @@ function drawPlatforms(){
         p.w,
         p.h
       );
+
     }
+
   }
 
-  // DEBUG HITBOX
-  /*
-ctx.strokeStyle = "lime";
-
-for(const p of G.platforms){
-
-  const sx = p.x - G.camX;
-
-  ctx.strokeRect(
-    sx,
-    p.y,
-    p.w,
-    p.h
-  );
 }
-*/
-}
+
 // ========== DRAW PLAYER (pixel art) ==========
 function drawPlayer(){
 
   const sx = P.x - G.camX;
+
+  // =====================================================
+// PLAYER HIT FLASH
+// กระพริบเฉพาะตอน stun 0.1 วิ
+// =====================================================
+
+if(
+  P.stunT > 0 &&
+  Math.floor(P.stunT / 2) % 2 === 0
+){
+  return;
+}
 
   let idleSprite =
     selectedCharacter === "female"
@@ -3275,98 +10466,377 @@ function generateDecor(){
 
 }
 
+// =====================================================
+// FROST RAGE COUNTDOWN UI
+// =====================================================
+
+function drawFrostRageUI(){
+
+  const boss =
+    G.monsters.find(
+      m =>
+        m.enemyKind === "frostBoss" &&
+        m.alive
+    );
+
+  if(
+    !boss ||
+    boss.bossMode !== "attack"
+  ){
+    return;
+  }
+
+  const remain =
+    Math.max(
+      0,
+      (
+        boss.rageEndTime -
+        performance.now()
+      ) / 1000
+    );
+
+  ctx.save();
+
+  ctx.textAlign = "center";
+
+  ctx.font =
+    '12px "Press Start 2P", monospace';
+
+  const text =
+    "SURVIVE " +
+    remain.toFixed(1) +
+    "s";
+
+  ctx.lineWidth = 5;
+
+  ctx.strokeStyle = "#000";
+
+  ctx.strokeText(
+    text,
+    CW / 2,
+    65
+  );
+
+  ctx.fillStyle = "#ff3030";
+
+  ctx.fillText(
+    text,
+    CW / 2,
+    65
+  );
+
+  ctx.restore();
+}
+
+
 // ========== GAME LOOP ==========
 function loop(){
   if(!G.running)return;
-  updatePlayer();updateMonsters();updateParts();updateCoins();
+  updatePoison();updatePlayer();updateMonsters();updateParts();updateCoins();updateDamageTexts();
   ctx.clearRect(0,0,CW,CH);
   drawBG();
+  drawDungeon();
+  drawDungeonDecos();
+  drawDungeonProps();
   //debugTerrain();
   drawDecor();
   drawPlatforms();
+  drawPortals();
   drawProps();
   //drawFlag();
   drawCoins();
   drawMonsters();
   drawParticles();
   drawPlayer();
+  drawDamageTexts();
   drawStunIndicators();
+  drawFrostRageUI();
   drawComboMsg();
   requestAnimationFrame(loop);
 }
 
 
 // ========== COIN SYSTEM ==========
-const COMBO_MSGS=['Nice!','Perfect!','Great!','Awesome!','Bravo!'];
-const COMBO_COLORS=['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#ff922b','#cc5de8'];
+const COMBO_MSGS=[
+  'Nice!',
+  'Perfect!',
+  'Great!',
+  'Awesome!',
+  'Bravo!'
+];
+
+const COMBO_COLORS=[
+  '#ff6b6b',
+  '#ffd93d',
+  '#6bcb77',
+  '#4d96ff',
+  '#ff922b',
+  '#cc5de8'
+];
 
 function updateCoins(){
-  if(G.inQ)return;
-  const pCX=P.x+P.w/2, pCY=P.y+P.h/2;
+
+  if(G.inQ) return;
+
+  const pCX = P.x + P.w/2;
+  const pCY = P.y + P.h/2;
+
   for(const c of G.coins){
-    if(!c.alive)continue;
-    c.ft++;if(c.ft>6){c.ft=0;c.frame=(c.frame+1)%4;}
-    const cdx=Math.abs(pCX-(c.x+8));
-    const cdy=Math.abs(pCY-(c.y+8));
-    if(cdx<22&&cdy<22){
-      c.alive=false;
-      G.coinScore++;
-      playCoinSound();
-      // Coin collect particles
-      spawnCoinParts(c.x+8,c.y+8);
-      // Every 5 coins = +0.5 score (represented as bonus shown in HUD)
-      if(G.coinScore%5===0){
-        G.score+=0.5;
-        // Show combo message on canvas
-        const msg=COMBO_MSGS[Math.floor(Math.random()*COMBO_MSGS.length)];
-        const col=COMBO_COLORS[Math.floor(Math.random()*COMBO_COLORS.length)];
-        G.comboMsg={text:msg,x:P.x-G.camX+40,y:P.y-20,col,t:90,max:90};
-        // DOM overlay with multi-color
-        showCoinCombo(msg,col);
-        updateHUD();
-      }
-      // Update coin display
-      document.getElementById('h-coins').textContent=(G.coinScore%5)+'/5';
+
+    if(!c.alive) continue;
+
+
+    // =========================
+    // COIN ANIMATION
+    // =========================
+
+    c.ft++;
+
+    // ประมาณ 8-9 FPS
+    if(c.ft > 6){
+
+      c.ft = 0;
+
+      c.frame =
+        (c.frame + 1) % COIN_FRAME_COUNT;
+
     }
+
+
+    // =========================
+    // PLAYER / COIN COLLISION
+    // =========================
+
+    const cdx =
+      Math.abs(pCX - (c.x + 8));
+
+    const cdy =
+      Math.abs(pCY - (c.y + 8));
+
+
+    if(cdx < 22 && cdy < 22){
+
+      c.alive = false;
+
+      G.coinScore++;
+
+      playCoinSound();
+
+
+      // Coin collect particles
+      spawnCoinParts(
+        c.x + 8,
+        c.y + 8
+      );
+
+
+      // ทุก 5 เหรียญ +0.5 คะแนน
+      if(G.coinScore % 5 === 0){
+
+        G.score += 0.5;
+
+        const msg =
+          COMBO_MSGS[
+            Math.floor(
+              Math.random() *
+              COMBO_MSGS.length
+            )
+          ];
+
+        const col =
+          COMBO_COLORS[
+            Math.floor(
+              Math.random() *
+              COMBO_COLORS.length
+            )
+          ];
+
+        G.comboMsg = {
+          text:msg,
+          x:P.x-G.camX+40,
+          y:P.y-20,
+          col,
+          t:90,
+          max:90
+        };
+
+        showCoinCombo(
+          msg,
+          col
+        );
+
+        updateHUD();
+
+      }
+
+
+      // Update coin display
+      document
+        .getElementById('h-coins')
+        .textContent =
+        (G.coinScore % 5) + '/5';
+
+    }
+
   }
+
+
   // Update combo message timer
-  if(G.comboMsg){G.comboT++;if(G.comboT>90){G.comboMsg=null;G.comboT=0;}}
+  if(G.comboMsg){
+
+    G.comboT++;
+
+    if(G.comboT > 90){
+
+      G.comboMsg = null;
+      G.comboT = 0;
+
+    }
+
+  }
+
 }
+
 
 function spawnCoinParts(x,y){
+
   for(let i=0;i<8;i++){
-    const a=Math.random()*Math.PI*2,s=1.5+Math.random()*3;
-    G.particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-2.5,life:35,max:35,col:'#ffd700',sq:5});
+
+    const a =
+      Math.random() *
+      Math.PI *
+      2;
+
+    const s =
+      1.5 +
+      Math.random() *
+      3;
+
+    G.particles.push({
+
+      x,
+      y,
+
+      vx:
+        Math.cos(a) * s,
+
+      vy:
+        Math.sin(a) * s - 2.5,
+
+      life:35,
+      max:35,
+
+      col:'#ffd700',
+
+      sq:5
+
+    });
+
+  }
+
+}
+
+
+// =========================
+// DRAW COINS
+// =========================
+
+function drawCoins(){
+
+  // รอให้รูปโหลดเสร็จก่อน
+  if(
+    !coinSheet.complete ||
+    coinSheet.naturalWidth === 0
+  ){
+    return;
+  }
+
+  for(const c of G.coins){
+
+    if(!c.alive) continue;
+
+    const sx = c.x - G.camX;
+
+    // ถ้าอยู่นอกหน้าจอ ไม่ต้องวาด
+    if(sx < -40 || sx > CW + 40){
+      continue;
+    }
+
+    // เหรียญลอยขึ้นลงนิดหน่อย
+    const bounce =
+      Math.sin(
+        Date.now()/300 +
+        c.x*0.03
+      ) * 2;
+
+    // เลือกเฟรมจาก Sprite Sheet
+    const sourceX =
+      c.frame * COIN_FRAME_W;
+
+    ctx.save();
+
+    ctx.imageSmoothingEnabled = false;
+
+    ctx.drawImage(
+      coinSheet,
+
+      // ตำแหน่งเฟรมใน Sprite Sheet
+      sourceX,
+      0,
+
+      // ขนาดเฟรมต้นฉบับ
+      COIN_FRAME_W,
+      COIN_FRAME_H,
+
+      // ตำแหน่งในเกม
+      sx - 4,
+      c.y + bounce - 4,
+
+      // ขนาดเหรียญในเกม
+      24,
+      24
+    );
+
+    ctx.restore();
   }
 }
 
-function drawCoins(){
-  for(const c of G.coins){
-    if(!c.alive)continue;
-    const sx=c.x-G.camX;
-    if(sx<-30||sx>CW+30)continue;
-    // Animated pixel coin
-    const bounce=Math.sin(Date.now()/300+c.x*0.03)*2;
-    const frame=c.frame;
-    // Shadow
-    ctx.fillStyle='rgba(0,0,0,0.2)';
-    ctx.fillRect(sx,c.y+18+bounce,16,4);
-    // Coin body (gold)
-    const coinColors=['#ffd700','#ffec6e','#ffc107'];
-    ctx.fillStyle=coinColors[frame%3];
-    // Pixel coin: different widths for spinning effect
-    const coinWidths=[16,12,8,12];
-    const cw=coinWidths[frame];
-    const cx_off=(16-cw)/2;
-    ctx.fillRect(sx+cx_off,c.y+bounce,cw,16);
-    // Shine pixel
-    ctx.fillStyle='#fff9';
-    ctx.fillRect(sx+cx_off+2,c.y+2+bounce,2,4);
-    // Border
-    ctx.fillStyle='#b8860b';
-    ctx.fillRect(sx+cx_off,c.y+bounce,cw,2);
-    ctx.fillRect(sx+cx_off,c.y+14+bounce,cw,2);
-  }
+function drawPortals(){
+
+    if(!portalImg.complete) return;
+
+    // ตอนนี้ใช้ทั้งรูปก่อน
+    const frameWidth =
+        portalImg.width;
+
+    const frameHeight =
+        portalImg.height / 3;
+
+    const frame =
+        Math.floor(Date.now()/120)%3;
+
+    for(const p of G.portals){
+
+        ctx.drawImage(
+
+            portalImg,
+
+            0,
+            frame*frameHeight,
+
+            frameWidth,
+            frameHeight,
+
+            p.x-G.camX,
+            p.y,
+
+            p.w,
+            p.h
+
+        );
+
+    }
+
 }
 
 function drawComboMsg(){
@@ -3506,6 +10976,171 @@ function checkAns(){
   const ok=ua===ca||ca.split(/\s+/).some(w=>ua.includes(w)&&w.length>1)||ua.split(/\s+/).some(w=>ca.includes(w)&&w.length>1);
 
   if(ok){
+    // =====================================================
+// FROST BOSS - CORRECT ANSWER
+// ต้องตอบถูก 5 ข้อ รวม +7 คะแนน
+// =====================================================
+
+if(
+  G.curMonster &&
+  G.curMonster.enemyKind === "frostBoss"
+){
+
+  const frostBoss =
+    G.curMonster;
+
+
+  // เพิ่มจำนวนข้อที่ตอบถูก
+  frostBoss.bossCorrect++;
+
+
+  // ข้อละ 1.4 คะแนน
+  G.score += 1.4;
+
+  updateHUD();
+
+  playCorrectSound();
+
+
+  inp.classList.add("ok");
+
+  hint.textContent = "";
+
+
+  fb.textContent =
+    "✓ ถูกต้อง! +1.4 คะแนน";
+
+
+  document
+    .getElementById("q-tries")
+    .textContent =
+    "BOSS: " +
+    frostBoss.bossCorrect +
+    " / " +
+    frostBoss.bossNeed;
+
+
+  // ===================================================
+  // ตอบครบ 5 ข้อแล้ว
+  // ===================================================
+
+  if(
+    frostBoss.bossCorrect >=
+    frostBoss.bossNeed
+  ){
+
+    fb.textContent =
+      "✓ ครบ 5 ข้อ! +7 คะแนน — BOSS DEFEATED!";
+
+
+    document
+      .getElementById("q-tries")
+      .textContent =
+      "❄ 5 / 5";
+
+
+    setTimeout(()=>{
+
+      document
+        .getElementById("q-popup")
+        .classList
+        .remove("show");
+
+
+      G.inQ = false;
+
+      G.curMonster = null;
+
+      G.curQ = null;
+
+
+      // ตอนนี้พักไว้ก่อน
+      // รอบต่อไปเราจะเปลี่ยนบรรทัดนี้
+      // เป็น startFrostDeath(frostBoss)
+
+startFrostDeath(
+  frostBoss
+);
+
+    },900);
+
+
+    return;
+  }
+
+
+  // ===================================================
+  // ยังไม่ครบ 5 ข้อ
+  // สุ่ม HARD ข้อต่อไป
+  // ===================================================
+
+  setTimeout(()=>{
+
+    inp.classList.remove("ok");
+
+    inp.value = "";
+
+
+    const pool =
+      QS.hard;
+
+
+    if(
+      G.usedQ.hard.length >=
+      pool.length
+    ){
+
+      G.usedQ.hard = [];
+
+    }
+
+
+    const available =
+      pool.filter(
+        q =>
+          !G.usedQ.hard.includes(q)
+      );
+
+
+    G.curQ =
+      available[
+        Math.floor(
+          Math.random() *
+          available.length
+        )
+      ];
+
+
+    G.usedQ.hard.push(
+      G.curQ
+    );
+
+
+    document
+      .getElementById("q-text")
+      .textContent =
+      G.curQ.q;
+
+
+    fb.textContent =
+      "ข้อต่อไป!";
+
+
+    document
+      .getElementById("q-tries")
+      .textContent =
+      "BOSS: " +
+      frostBoss.bossCorrect +
+      " / 5";
+
+
+    inp.focus();
+
+  },700);
+
+
+  return;
+}
     inp.classList.add('ok');
     fb.textContent='✓ ถูกต้อง! +1 คะแนน';fb.className='ok';
     playCorrectSound();
@@ -3574,6 +11209,59 @@ G.usedQ[lvKey].push(G.curQ);
 
 },1000);
   } else {
+    // =====================================================
+// FROST BOSS - WRONG ANSWER
+// =====================================================
+
+if(
+  G.curMonster &&
+  G.curMonster.enemyKind === "frostBoss"
+){
+
+  const frostBoss =
+    G.curMonster;
+
+
+  inp.classList.add("bad");
+
+  playWrongSound();
+
+
+  fb.textContent =
+    "✕ ผิด! FROST GUARDIAN กำลังคลั่ง!";
+
+  fb.className =
+    "bad";
+
+
+  document
+    .getElementById("q-tries")
+    .textContent =
+    "⚠ หนีให้รอด 10 วินาที!";
+
+
+  setTimeout(()=>{
+
+    document
+      .getElementById("q-popup")
+      .classList
+      .remove("show");
+
+
+    G.inQ = false;
+
+    G.curMonster = null;
+
+
+    startFrostRage(
+      frostBoss
+    );
+
+  },700);
+
+
+  return;
+}
     G.wrongCnt++;
     inp.classList.add('bad');
     playWrongSound();
@@ -3599,6 +11287,37 @@ G.usedQ[lvKey].push(G.curQ);
 // RUN BUTTON — หนีจากมอนสเตอร์ ไม่ได้คะแนน แต่เสีย HP นิดหน่อย
 function runFromMonster(){
   if(!G.curMonster)return;
+  // =====================================================
+// FROST BOSS - RUN BUTTON
+// =====================================================
+
+if(
+  G.curMonster.enemyKind ===
+  "frostBoss"
+){
+
+  const frostBoss =
+    G.curMonster;
+
+
+  document
+    .getElementById("q-popup")
+    .classList
+    .remove("show");
+
+
+  G.inQ = false;
+
+  G.curMonster = null;
+
+
+  startFrostRage(
+    frostBoss
+  );
+
+
+  return;
+}
   document.getElementById('q-popup').classList.remove('show');
   G.curMonster.x+=200; // ดันมอนสเตอร์ออกไป
   G.curMonster.chasing=false;
@@ -3620,7 +11339,9 @@ function triggerBoss(){
   document.getElementById('boss-fail').style.display='none';
   const hb=document.getElementById('hit-btn');
 
-  if(Math.floor(G.score)<7){
+  if(
+  Math.round(G.score * 10) / 10 < 16
+){
     document.getElementById('boss-fail').style.display='block';
     hb.disabled=true;hb.style.opacity='0.35';hb.textContent='✕ คะแนนไม่พอ!';
     const bbImg0=document.getElementById('boss-big-img');
@@ -3648,7 +11369,9 @@ function triggerBoss(){
 }
 
 document.getElementById('hit-btn').onclick=function(){
-  if(Math.floor(G.score)<7)return;
+  if(
+  Math.round(G.score * 10) / 10 < 16
+)return;
   const dmg=6+Math.floor(Math.random()*8);
   bossHP=Math.max(0,bossHP-dmg);
   document.getElementById('bhp').style.width=bossHP+'%';
@@ -3677,7 +11400,7 @@ function doLose(msg){
   document.getElementById('q-popup').classList.remove('show');
   document.getElementById('boss-screen').classList.remove('show');
   document.getElementById('lose-msg').textContent=msg||'เกมโอเวอร์...';
-  document.getElementById('lose-sc').textContent='คะแนน: '+parseFloat(G.score).toFixed(1)+'/10';
+  document.getElementById('lose-sc').textContent='คะแนน: '+parseFloat(G.score).toFixed(1)+'/16';
   showScreen('sc-lose');
 }
 
@@ -3909,6 +11632,11 @@ function startGame(){
   P.vx=0;
   P.vy=0;
   P.hurtT=0;
+  P.stunT=0;
+  P.poisonTicksLeft=0;
+P.poisonTickT=0;
+
+G.damageTexts=[];
   P.frame=0;
   P.ft=0;
   P.facing=1;
