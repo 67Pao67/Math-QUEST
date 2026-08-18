@@ -947,6 +947,91 @@ position:relative;
 .coin-pulse{animation:cpulse 0.3s ease;}
 @keyframes cpulse{0%{transform:scale(1);}50%{transform:scale(1.4);}100%{transform:scale(1);}}
 
+/* =========================================
+   ITEM NOTICE
+   ข้อความตอนเก็บหัวใจ / ผลไม้
+========================================= */
+
+#item-notice{
+
+  position:fixed;
+
+  left:50%;
+  top:90px;
+
+  transform:translateX(-50%);
+
+  z-index:9999;
+
+  pointer-events:none;
+
+  display:none;
+
+  color:white;
+
+  font-size:13px;
+
+  font-family:'Press Start 2P',monospace;
+
+  text-align:center;
+
+  white-space:nowrap;
+
+  text-shadow:
+    3px 3px 0 #000,
+   -2px 2px 0 #000,
+    2px -2px 0 #000,
+   -2px -2px 0 #000;
+
+}
+
+
+#item-notice.show{
+
+  display:block;
+
+  animation:
+    itemNoticePop 1.4s ease forwards;
+
+}
+
+
+@keyframes itemNoticePop{
+
+  0%{
+    opacity:0;
+    transform:
+      translateX(-50%)
+      translateY(15px)
+      scale(.7);
+  }
+
+  20%{
+    opacity:1;
+    transform:
+      translateX(-50%)
+      translateY(0)
+      scale(1.1);
+  }
+
+  75%{
+    opacity:1;
+    transform:
+      translateX(-50%)
+      translateY(-5px)
+      scale(1);
+  }
+
+  100%{
+    opacity:0;
+    transform:
+      translateX(-50%)
+      translateY(-18px)
+      scale(.9);
+  }
+
+}
+
 /* ===== NEW TITLE SCREEN ===== */
 
 #sc-title{
@@ -1113,6 +1198,7 @@ position:relative;
 
 <canvas id="gameCanvas"></canvas>
 <div id="coin-combo-overlay"></div>
+<div id="item-notice"></div>
 
 <div id="mobile-controls" style="display:none">
   <div id="ctrl-lr">
@@ -1905,6 +1991,88 @@ const COIN_FRAME_W = 16;
 const COIN_FRAME_H = 16;
 const COIN_FRAME_COUNT = 15;
 
+// =====================================================
+// HEART + FRUIT IMAGES
+// =====================================================
+
+
+// =========================
+// HEART SPRITE SHEET
+// =========================
+
+const heartSheet = new Image();
+
+heartSheet.src = "hearts.png";
+
+heartSheet.onload = () => {
+
+  console.log(
+    "HEART SPRITE LOADED",
+    heartSheet.width,
+    heartSheet.height
+  );
+
+};
+
+heartSheet.onerror = () => {
+
+  console.log(
+    "HEART SPRITE LOAD FAIL"
+  );
+
+};
+
+
+// หัวใจแต่ละช่องขนาด 16x16
+const HEART_FRAME_W = 16;
+const HEART_FRAME_H = 16;
+
+
+// ใช้หัวใจแถวแรก
+// ช่อง 0 -> 5 ทำเป็น animation หมุน
+const HEART_FRAMES = [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5
+];
+
+
+
+
+// =========================
+// FRUIT SPRITE SHEET
+// =========================
+
+const fruitSheet = new Image();
+
+fruitSheet.src = "fruits.png";
+
+fruitSheet.onload = () => {
+
+  console.log(
+    "FRUIT SPRITE LOADED",
+    fruitSheet.width,
+    fruitSheet.height
+  );
+
+};
+
+fruitSheet.onerror = () => {
+
+  console.log(
+    "FRUIT SPRITE LOAD FAIL"
+  );
+
+};
+
+
+// ผลไม้แต่ละช่องขนาด 16x16
+const FRUIT_FRAME_W = 16;
+const FRUIT_FRAME_H = 16;
+
 const dungeonTiles = new Image();
 dungeonTiles.src = "Tilesetv3.png";
 
@@ -2049,8 +2217,24 @@ function resizeCanvas(){
   ctx.imageSmoothingEnabled=false; 
 } 
 resizeCanvas(); 
-window.addEventListener('resize',()=>
-{resizeCanvas();if(G.running)buildLevel();});
+window.addEventListener(
+  'resize',
+  ()=>{
+
+    resizeCanvas();
+
+    if(G.running){
+
+      buildLevel();
+
+      // ใส่ Collision จาก Tiled กลับเข้าไป
+      applyTiledForestCollision();
+      applyTiledDungeonCollision();
+
+    }
+
+  }
+);
 
 // ========== PIXEL FONT renderer (tiny pixel text on canvas) ==========
 // Draw pixel text using ctx (fallback to fillText with Press Start 2P if loaded)
@@ -2089,6 +2273,10 @@ const G={
   portals:[],
   dungeonDecos:[],
   dungeonProps:[],
+  hearts:[],
+  fruits:[],
+  nextQuestionDouble:0,
+  pickupBannerT:null,
 
   bossKilled:false,
 };
@@ -2111,6 +2299,11 @@ const P={
 
   hurtT:0,
   stunT:0,
+
+  // SPEED ITEM
+  speedMul:1,
+  speedBoostMs:0,
+
   // POISON
   poisonTicksLeft:0,
   poisonTickT:0
@@ -2540,9 +2733,2310 @@ function addDungeonQuizMonster(
 
 }
 
+// =====================================================
+// TILED DUNGEON MAP - TEST LOAD
+// =====================================================
+
+let TILED_DUNGEON = null;
+
+async function loadTiledDungeon(){
+
+  try{
+
+    const response =
+      await fetch("maps/dungeon.tmj");
+
+    if(!response.ok){
+      throw new Error(
+        "โหลด dungeon.tmj ไม่สำเร็จ: " +
+        response.status
+      );
+    }
+
+    TILED_DUNGEON =
+      await response.json();
+
+    console.log(
+      "✅ TILED MAP LOADED",
+      TILED_DUNGEON
+    );
+
+    console.log(
+      "MAP SIZE:",
+      TILED_DUNGEON.width,
+      "x",
+      TILED_DUNGEON.height
+    );
+
+    console.log(
+      "LAYERS:",
+      TILED_DUNGEON.layers.map(
+        layer => layer.name
+      )
+    );
+
+  }catch(err){
+
+    console.error(
+      "❌ TILED MAP ERROR",
+      err
+    );
+
+  }
+
+}
+
+loadTiledDungeon();
+
+// =====================================================
+// DRAW TILED DUNGEON
+// =====================================================
+
+const TILED_TILE_SIZE = 16;
+const TILED_SCALE = 2;
+
+function drawTiledLayer(layerName){
+
+  if(
+    !TILED_DUNGEON ||
+    !dungeonTiles.complete ||
+    dungeonTiles.naturalWidth === 0
+  ){
+    return;
+  }
+
+  const layer =
+    TILED_DUNGEON.layers.find(
+      l => l.name === layerName
+    );
+
+  if(
+    !layer ||
+    layer.type !== "tilelayer"
+  ){
+    return;
+  }
+
+  const mapWidth =
+    TILED_DUNGEON.width;
+
+  const mapHeight =
+    TILED_DUNGEON.height;
+
+  // Tilesetv3.png กว้างกี่ช่อง
+  const tilesetColumns =
+    Math.floor(
+      dungeonTiles.naturalWidth /
+      TILED_TILE_SIZE
+    );
+
+  // 16px ใน Tiled = 32px ในเกม
+  const drawSize =
+    TILED_TILE_SIZE *
+    TILED_SCALE;
+
+
+  for(
+    let row = 0;
+    row < mapHeight;
+    row++
+  ){
+
+    for(
+      let col = 0;
+      col < mapWidth;
+      col++
+    ){
+
+      const index =
+        row * mapWidth + col;
+
+      let gid =
+        layer.data[index];
+
+      // ช่องว่าง
+      if(!gid){
+        continue;
+      }
+
+
+      // ล้าง flip flags ของ Tiled
+      gid =
+        gid & 0x1fffffff;
+
+
+      // Tiled GID เริ่มที่ 1
+      const tileId =
+        gid - 1;
+
+
+      // ตำแหน่ง Tile ใน Tilesetv3.png
+      const sourceX =
+        (
+          tileId %
+          tilesetColumns
+        ) *
+        TILED_TILE_SIZE;
+
+      const sourceY =
+        Math.floor(
+          tileId /
+          tilesetColumns
+        ) *
+        TILED_TILE_SIZE;
+
+
+      // ตำแหน่งในโลกเกม
+      const worldX =
+        DUNGEON_START +
+        col * drawSize;
+
+      const worldY =
+        row * drawSize;
+
+
+      // แปลงเป็นตำแหน่งบนจอ
+      const screenX =
+        Math.round(
+          worldX -
+          G.camX
+        );
+
+      const screenY =
+        Math.round(
+          worldY
+        );
+
+
+      // ไม่ต้องวาด tile ที่อยู่นอกจอ
+      if(
+        screenX + drawSize < -32 ||
+        screenX > CW + 32
+      ){
+        continue;
+      }
+
+
+      ctx.drawImage(
+
+        dungeonTiles,
+
+        sourceX,
+        sourceY,
+
+        TILED_TILE_SIZE,
+        TILED_TILE_SIZE,
+
+        screenX,
+        screenY,
+
+        drawSize,
+        drawSize
+
+      );
+
+    }
+
+  }
+
+}
+
+
+
+// =====================================================
+// TILED DUNGEON COLLISION
+// =====================================================
+
+function applyTiledDungeonCollision(){
+
+  if(!TILED_DUNGEON){
+    console.warn(
+      "⚠️ Tiled map ยังไม่โหลด"
+    );
+    return;
+  }
+
+  const collisionLayer =
+    TILED_DUNGEON.layers.find(
+      layer =>
+        layer.name === "Collision"
+    );
+
+  if(!collisionLayer){
+    console.error(
+      "❌ ไม่เจอ Collision layer"
+    );
+    return;
+  }
+
+
+  // ---------------------------------
+  // ลบ Collision Dungeon เก่า
+  // แต่เก็บ Forest ไว้เหมือนเดิม
+  // ---------------------------------
+
+  G.platforms =
+    G.platforms.filter(
+      pl =>
+        pl.x < DUNGEON_START
+    );
+
+
+  // ---------------------------------
+  // ใส่ Collision จาก Tiled
+  // Tiled 16px → เกม x2
+  // ---------------------------------
+
+  for(
+    const obj
+    of collisionLayer.objects
+  ){
+
+    if(
+      !obj.width ||
+      !obj.height
+    ){
+      continue;
+    }
+
+// อ่านชื่อ Collision ที่ตั้งใน Tiled
+const collisionName =
+  (obj.name || "")
+  .trim()
+  .toLowerCase();
+
+
+// ค่าเริ่มต้น = พื้น / platform
+let collisionType = "dg";
+
+
+// ถ้าตั้ง Name ว่า Ceiling
+if(collisionName === "ceiling"){
+
+  collisionType = "dg-ceiling";
+
+}
+
+
+// ถ้าตั้ง Name ว่า Wall
+else if(collisionName === "wall"){
+
+  collisionType = "dg-wall";
+
+}
+
+
+G.platforms.push({
+
+  x:
+    DUNGEON_START +
+    obj.x * TILED_SCALE,
+
+  y:
+    obj.y * TILED_SCALE,
+
+  w:
+    obj.width *
+    TILED_SCALE,
+
+  h:
+    obj.height *
+    TILED_SCALE,
+
+  t:
+    collisionType,
+
+  noDraw:true
+
+});
+
+  }
+
+  console.log(
+    "✅ TILED COLLISION:",
+    collisionLayer.objects.length,
+    "objects"
+  );
+
+}
+
+// =====================================================
+// TILED FOREST COLLISION
+// =====================================================
+
+function applyTiledForestCollision(){
+
+  if(!TILED_FOREST){
+
+    console.warn(
+      "⚠️ Tiled Forest ยังไม่โหลด"
+    );
+
+    return;
+  }
+
+
+  const layer =
+    TILED_FOREST.layers.find(
+      l => l.name === "Collision"
+    );
+
+
+  if(
+    !layer ||
+    layer.type !== "objectgroup"
+  ){
+
+    console.error(
+      "❌ ไม่เจอ Forest Collision layer"
+    );
+
+    return;
+  }
+
+
+  // ===================================================
+  // ลบ Collision Forest เก่า
+  // เก็บ Dungeon ไว้
+  // ===================================================
+
+  G.platforms =
+    G.platforms.filter(
+      pl =>
+        pl.x >= DUNGEON_START
+    );
+
+
+  // ===================================================
+  // ใส่ Collision จาก Tiled
+  //
+  // Forest ใช้ 32x32 จริง
+  // ไม่ต้อง x2 แบบ Dungeon
+  // ===================================================
+
+  for(const obj of layer.objects){
+
+    if(
+      !obj.width ||
+      !obj.height
+    ){
+      continue;
+    }
+
+
+    const name =
+      (obj.name || "")
+      .trim()
+      .toLowerCase();
+
+
+    // ค่าเริ่มต้น = พื้น / platform
+    let type = "g";
+
+
+    // ถ้าตั้งชื่อ Ceiling ใน Tiled
+    if(name === "ceiling"){
+
+      type = "dg-ceiling";
+
+    }
+
+
+    // ถ้าตั้งชื่อ Wall ใน Tiled
+    else if(name === "wall"){
+
+      type = "dg-wall";
+
+    }
+
+
+    G.platforms.push({
+
+      x:
+        obj.x,
+
+      y:
+        obj.y,
+
+      w:
+        obj.width,
+
+      h:
+        obj.height,
+
+      t:
+        type,
+
+      noDraw:
+        true,
+
+      tiledForest:
+        true
+
+    });
+
+  }
+
+
+  console.log(
+    "🌲 FOREST COLLISION:",
+    layer.objects.length,
+    "objects"
+  );
+
+}
+
+// =====================================================
+// DRAW TILED FOREST
+// รองรับหลาย Tileset
+// =====================================================
+
+function getForestTilesetForGid(gid){
+
+  for(
+    let i =
+      TILED_FOREST_TILESETS.length - 1;
+    i >= 0;
+    i--
+  ){
+
+    const ts =
+      TILED_FOREST_TILESETS[i];
+
+    if(
+      gid >= ts.firstgid &&
+      gid <= ts.lastgid
+    ){
+      return ts;
+    }
+
+  }
+
+  return null;
+}
+
+
+
+function drawTiledForestLayer(layerName){
+
+  if(
+    !TILED_FOREST ||
+    TILED_FOREST_TILESETS.length === 0
+  ){
+    return;
+  }
+
+
+  const layer =
+    TILED_FOREST.layers.find(
+      l => l.name === layerName
+    );
+
+
+  if(
+    !layer ||
+    layer.type !== "tilelayer"
+  ){
+    return;
+  }
+
+
+  const mapWidth =
+    layer.width ||
+    TILED_FOREST.width;
+
+  const mapHeight =
+    layer.height ||
+    TILED_FOREST.height;
+
+
+  const cellW =
+    TILED_FOREST.tilewidth;
+
+  const cellH =
+    TILED_FOREST.tileheight;
+
+
+  for(
+    let row = 0;
+    row < mapHeight;
+    row++
+  ){
+
+    for(
+      let col = 0;
+      col < mapWidth;
+      col++
+    ){
+
+      const index =
+        row * mapWidth + col;
+
+
+      const rawGid =
+        Number(
+          layer.data[index]
+        ) >>> 0;
+
+
+      if(!rawGid){
+        continue;
+      }
+
+
+      // Tiled flip flags
+      const flipH =
+        (rawGid & 0x80000000) !== 0;
+
+      const flipV =
+        (rawGid & 0x40000000) !== 0;
+
+
+      // เอา flag ออกจาก GID
+      const gid =
+        rawGid & 0x1fffffff;
+
+
+      const ts =
+        getForestTilesetForGid(
+          gid
+        );
+
+
+      if(!ts){
+        continue;
+      }
+
+
+      const tileId =
+        gid - ts.firstgid;
+
+
+      const sourceX =
+        ts.margin +
+        (
+          tileId %
+          ts.columns
+        ) *
+        (
+          ts.tileWidth +
+          ts.spacing
+        );
+
+
+      const sourceY =
+        ts.margin +
+        Math.floor(
+          tileId /
+          ts.columns
+        ) *
+        (
+          ts.tileHeight +
+          ts.spacing
+        );
+
+
+      // ขนาดจริงของ tile
+      const drawW =
+        ts.tileWidth;
+
+      const drawH =
+        ts.tileHeight;
+
+
+      // Forest เริ่มที่ x = 0
+      const worldX =
+        col * cellW;
+
+
+      // ถ้า tile สูงกว่าช่อง
+      // ให้ยึดฐานล่างเหมือน Tiled
+      const worldY =
+        row * cellH +
+        (
+          cellH -
+          drawH
+        );
+
+
+      const screenX =
+        Math.round(
+          worldX -
+          G.camX
+        );
+
+      const screenY =
+        Math.round(
+          worldY
+        );
+
+
+      // ไม่ต้องวาดของที่อยู่นอกจอ
+      if(
+        screenX + drawW < -100 ||
+        screenX > CW + 100
+      ){
+        continue;
+      }
+
+
+      ctx.save();
+
+      ctx.imageSmoothingEnabled =
+        false;
+
+
+      // รองรับ Flip ซ้าย/ขวา และบน/ล่าง
+      if(flipH || flipV){
+
+        ctx.translate(
+          screenX +
+          drawW / 2,
+
+          screenY +
+          drawH / 2
+        );
+
+
+        ctx.scale(
+          flipH ? -1 : 1,
+          flipV ? -1 : 1
+        );
+
+
+        ctx.drawImage(
+          ts.image,
+
+          sourceX,
+          sourceY,
+
+          ts.tileWidth,
+          ts.tileHeight,
+
+          -drawW / 2,
+          -drawH / 2,
+
+          drawW,
+          drawH
+        );
+
+      }
+      else{
+
+        ctx.drawImage(
+          ts.image,
+
+          sourceX,
+          sourceY,
+
+          ts.tileWidth,
+          ts.tileHeight,
+
+          screenX,
+          screenY,
+
+          drawW,
+          drawH
+        );
+
+      }
+
+
+      ctx.restore();
+
+    }
+
+  }
+
+}
+
+// =====================================================
+// TILED FOREST ENTITIES
+// =====================================================
+
+let TILED_FOREST_PLAYER_START = null;
+
+
+function addTiledForestMonster(
+  kind,
+  footX,
+  footY
+){
+
+  let lv = 1;
+  let typeIndex = 0;
+
+
+  if(kind === "forestlv2"){
+
+    lv = 2;
+    typeIndex = 4;
+
+  }
+  else if(kind === "forestlv3"){
+
+    lv = 3;
+    typeIndex = 7;
+
+  }
+
+
+  const w = 40;
+  const h = 46;
+
+  const x =
+    footX - w / 2;
+
+  const y =
+    footY - h;
+
+
+  const type =
+    MTYPES[
+      typeIndex %
+      MTYPES.length
+    ];
+
+
+  G.monsters.push({
+
+    x:x,
+    y:y,
+
+    baseY:
+      y + 33,
+
+    w:w,
+    h:h,
+
+    alive:true,
+
+    type:type,
+
+    lv:lv,
+    hp:lv,
+
+    dir:1,
+
+    dt:0,
+    ft:0,
+    fr:0,
+
+    chasing:false,
+    stunT:0,
+
+    isBoss:false,
+
+    spawnX:x,
+    spawnY:y,
+
+    vy:0,
+    onGround:false
+
+  });
+
+}
+
+
+
+// =====================================================
+// APPLY ENTITIES
+// =====================================================
+
+function applyTiledForestEntities(){
+
+  if(!TILED_FOREST){
+    return;
+  }
+
+
+  const layer =
+    TILED_FOREST.layers.find(
+      l => l.name === "Entities"
+    );
+
+
+  if(
+    !layer ||
+    layer.type !== "objectgroup"
+  ){
+
+    console.error(
+      "❌ ไม่เจอ Forest Entities layer"
+    );
+
+    return;
+  }
+
+
+  // ===================================================
+  // เก็บ Minotaur ตัวเดิมไว้
+  // เพราะ AI / ระบบคำถามพร้อมอยู่แล้ว
+  // ===================================================
+
+  const oldMinotaur =
+    G.monsters.find(
+      m =>
+        m.enemyKind ===
+        "forestBoss"
+    );
+
+
+  // ===================================================
+  // ลบมอน Forest ตำแหน่งเก่า
+  // แต่เก็บ Dungeon monsters
+  // ===================================================
+
+  G.monsters =
+    G.monsters.filter(
+      m =>
+        m.x >= DUNGEON_START
+    );
+
+
+  // ===================================================
+  // ลบ Portal Forest ตัวเก่า
+  // ===================================================
+
+  G.portals =
+    G.portals.filter(
+      p =>
+        p.x >= DUNGEON_START
+    );
+
+
+  // ===================================================
+  // อ่าน Point จาก Tiled
+  // ===================================================
+
+  for(const obj of layer.objects){
+
+    const kind =
+      (obj.name || "")
+      .trim()
+      .toLowerCase();
+
+
+    // Forest ใช้ scale 1:1
+    const footX =
+      obj.x;
+
+    const footY =
+      obj.y;
+
+
+    // ===============================================
+    // PLAYER START
+    // ===============================================
+
+    if(kind === "playerstart"){
+
+      TILED_FOREST_PLAYER_START = {
+
+        x:
+          footX -
+          P.w / 2,
+
+        y:
+          footY -
+          P.h
+
+      };
+
+      continue;
+    }
+
+
+    // ===============================================
+    // FOREST LV.1 / 2 / 3
+    // ===============================================
+
+    if(
+      kind === "forestlv1" ||
+      kind === "forestlv2" ||
+      kind === "forestlv3"
+    ){
+
+      addTiledForestMonster(
+        kind,
+        footX,
+        footY
+      );
+
+      continue;
+    }
+
+
+    // ===============================================
+    // DUNGEON PORTAL
+    // Point = กลางฐานประตู
+    // ===============================================
+
+    if(kind === "dungeonportal"){
+
+      const portalW = 64;
+      const portalH = 64;
+
+
+      G.portals.push({
+
+        x:
+          footX -
+          portalW / 2,
+
+        y:
+          footY -
+          portalH,
+
+        w:
+          portalW,
+
+        h:
+          portalH,
+
+        frame:0,
+        ft:0,
+        cooldown:0,
+
+        targetX:
+          DUNGEON_START + 100,
+
+        targetY:
+          GY - 100
+
+      });
+
+      continue;
+    }
+
+
+    // ===============================================
+    // MINOTAUR
+    // ใช้ object เดิม
+    // เปลี่ยนเฉพาะตำแหน่ง
+    // ===============================================
+
+    if(kind === "minotaur"){
+
+      if(!oldMinotaur){
+
+        console.error(
+          "❌ หา Minotaur template ไม่เจอ"
+        );
+
+        continue;
+      }
+
+
+      const boss = {
+        ...oldMinotaur
+      };
+
+
+      boss.x =
+        footX -
+        boss.w / 2;
+
+
+      boss.y =
+        footY -
+        boss.h;
+
+
+      // สำคัญมาก:
+      // AI Minotaur ล็อกตำแหน่งกับ baseY
+      boss.baseY =
+        boss.y;
+
+
+      boss.spawnX =
+        boss.x;
+
+      boss.spawnY =
+        boss.y;
+
+
+      boss.alive =
+        true;
+
+
+      G.monsters.push(
+        boss
+      );
+
+
+      continue;
+    }
+
+  }
+
+
+  console.log(
+    "🌲 FOREST ENTITIES READY"
+  );
+
+
+  console.log(
+    "🌲 FOREST MONSTERS:",
+    G.monsters.filter(
+      m =>
+        m.x < DUNGEON_START
+    ).length
+  );
+
+
+  console.log(
+    "🚪 FOREST PORTALS:",
+    G.portals.filter(
+      p =>
+        p.x < DUNGEON_START
+    ).length
+  );
+
+}
+
+// =====================================================
+// FOREST TILESETS
+// รองรับหลาย Tileset จาก Tiled
+// =====================================================
+
+let TILED_FOREST_TILESETS = [];
+
+
+function forestAssetPath(path){
+
+  path =
+    (path || "")
+    .replaceAll("\\", "/");
+
+  // ถ้า Tiled เขียน maps/... มาอยู่แล้ว
+  if(path.startsWith("maps/")){
+    return path;
+  }
+
+  // ไฟล์ .tsx ของ Forest เราอยู่ใน maps/
+  return "maps/" + path;
+
+}
+
+
+function loadForestImage(src){
+
+  return new Promise(
+    (resolve, reject)=>{
+
+      const img = new Image();
+
+      img.onload = ()=>{
+        resolve(img);
+      };
+
+      img.onerror = ()=>{
+        reject(
+          new Error(
+            "โหลดรูป Forest ไม่สำเร็จ: " +
+            src
+          )
+        );
+      };
+
+      img.src = src;
+
+    }
+  );
+
+}
+
+
+async function loadForestTilesets(){
+
+  if(!TILED_FOREST){
+    return;
+  }
+
+  const refs =
+    [...TILED_FOREST.tilesets]
+    .sort(
+      (a,b) =>
+        a.firstgid - b.firstgid
+    );
+
+
+  const loaded = [];
+
+
+  for(
+    let i = 0;
+    i < refs.length;
+    i++
+  ){
+
+    const ref = refs[i];
+
+
+    if(!ref.source){
+
+      console.warn(
+        "⚠️ Forest tileset ไม่มี source",
+        ref
+      );
+
+      continue;
+    }
+
+
+    // -----------------------------------
+    // โหลดไฟล์ .tsx
+    // -----------------------------------
+
+    const tsxPath =
+      forestAssetPath(
+        ref.source
+      );
+
+    const tsxURL =
+      new URL(
+        tsxPath,
+        window.location.href
+      );
+
+
+    const response =
+      await fetch(tsxURL);
+
+
+    if(!response.ok){
+
+      throw new Error(
+        "โหลด Tileset ไม่สำเร็จ: " +
+        tsxPath
+      );
+
+    }
+
+
+    const text =
+      await response.text();
+
+
+    const xml =
+      new DOMParser()
+      .parseFromString(
+        text,
+        "application/xml"
+      );
+
+
+    const tileset =
+      xml.querySelector(
+        "tileset"
+      );
+
+
+    if(!tileset){
+
+      console.warn(
+        "⚠️ อ่าน TSX ไม่ได้:",
+        tsxPath
+      );
+
+      continue;
+    }
+
+
+    // หา image หลักของ Tileset
+    let imageTag = null;
+
+    for(
+      const child
+      of tileset.children
+    ){
+
+      if(
+        child.tagName === "image"
+      ){
+
+        imageTag = child;
+        break;
+
+      }
+
+    }
+
+
+    if(!imageTag){
+
+      console.warn(
+        "⚠️ Tileset นี้ไม่มี image หลัก:",
+        tsxPath
+      );
+
+      continue;
+    }
+
+
+    // -----------------------------------
+    // ขนาด Tile
+    // -----------------------------------
+
+    const tileWidth =
+      Number(
+        tileset.getAttribute(
+          "tilewidth"
+        )
+      );
+
+    const tileHeight =
+      Number(
+        tileset.getAttribute(
+          "tileheight"
+        )
+      );
+
+    const margin =
+      Number(
+        tileset.getAttribute(
+          "margin"
+        ) || 0
+      );
+
+    const spacing =
+      Number(
+        tileset.getAttribute(
+          "spacing"
+        ) || 0
+      );
+
+
+    // -----------------------------------
+    // โหลด PNG ของ Tileset
+    // -----------------------------------
+
+    const imageSource =
+      imageTag.getAttribute(
+        "source"
+      );
+
+
+    const imageURL =
+      new URL(
+        imageSource,
+        tsxURL
+      ).href;
+
+
+    const image =
+      await loadForestImage(
+        imageURL
+      );
+
+
+    // -----------------------------------
+    // จำนวน column
+    // -----------------------------------
+
+    let columns =
+      Number(
+        tileset.getAttribute(
+          "columns"
+        )
+      );
+
+
+    if(!columns){
+
+      columns =
+        Math.floor(
+          (
+            image.naturalWidth -
+            margin * 2 +
+            spacing
+          )
+          /
+          (
+            tileWidth +
+            spacing
+          )
+        );
+
+    }
+
+
+    let tileCount =
+      Number(
+        tileset.getAttribute(
+          "tilecount"
+        )
+      );
+
+
+    if(!tileCount){
+
+      const rows =
+        Math.floor(
+          (
+            image.naturalHeight -
+            margin * 2 +
+            spacing
+          )
+          /
+          (
+            tileHeight +
+            spacing
+          )
+        );
+
+      tileCount =
+        columns * rows;
+
+    }
+
+
+    // -----------------------------------
+    // ช่วง GID ของ Tileset
+    // -----------------------------------
+
+    const lastgid =
+      i < refs.length - 1
+      ?
+      refs[i + 1].firstgid - 1
+      :
+      ref.firstgid +
+      tileCount - 1;
+
+
+    loaded.push({
+
+      firstgid:
+        ref.firstgid,
+
+      lastgid:
+        lastgid,
+
+      tileWidth:
+        tileWidth,
+
+      tileHeight:
+        tileHeight,
+
+      margin:
+        margin,
+
+      spacing:
+        spacing,
+
+      columns:
+        columns,
+
+      image:
+        image,
+
+      source:
+        ref.source
+
+    });
+
+  }
+
+
+  TILED_FOREST_TILESETS =
+    loaded;
+
+
+  console.log(
+    "🌲 FOREST TILESET IMAGES READY:",
+    loaded.length
+  );
+
+
+  console.table(
+    loaded.map(
+      t => ({
+        source:
+          t.source,
+
+        firstgid:
+          t.firstgid,
+
+        lastgid:
+          t.lastgid,
+
+        tile:
+          t.tileWidth +
+          "x" +
+          t.tileHeight,
+
+        columns:
+          t.columns
+      })
+    )
+  );
+
+}
+
+
+// =====================================================
+// LOAD TILED FOREST
+// =====================================================
+
+let TILED_FOREST = null;
+
+async function loadTiledForest(){
+
+  try{
+
+    const response =
+      await fetch(
+        "maps/forest.tmj"
+      );
+
+    if(!response.ok){
+
+      throw new Error(
+        "โหลด forest.tmj ไม่สำเร็จ: " +
+        response.status
+      );
+
+    }
+
+    TILED_FOREST =
+      await response.json();
+
+      await loadForestTilesets();
+
+
+    console.log(
+      "🌲 TILED FOREST LOADED",
+      TILED_FOREST
+    );
+
+    console.log(
+      "FOREST MAP SIZE:",
+      TILED_FOREST.width,
+      "x",
+      TILED_FOREST.height
+    );
+
+    console.log(
+      "FOREST LAYERS:",
+      TILED_FOREST.layers.map(
+        layer => layer.name
+      )
+    );
+
+    console.log(
+      "FOREST TILESETS:",
+      TILED_FOREST.tilesets.map(
+        tileset => tileset.source
+      )
+    );
+
+  }
+  catch(err){
+
+    console.error(
+      "❌ TILED FOREST ERROR",
+      err
+    );
+
+  }
+
+}
+
+loadTiledForest();
+
+// =====================================================
+// TILED DUNGEON MONSTERS
+// อ่านตำแหน่งจาก Entities layer
+// Point ใน Tiled = ตำแหน่งเท้าของมอนสเตอร์
+// =====================================================
+
+function applyTiledDungeonMonsters(){
+
+  if(!TILED_DUNGEON){
+    return;
+  }
+
+  const entityLayer =
+    TILED_DUNGEON.layers.find(
+      layer =>
+        layer.name === "Entities"
+    );
+
+  if(!entityLayer){
+    console.error(
+      "❌ ไม่เจอ Entities layer"
+    );
+    return;
+  }
+
+
+  // ===================================================
+  // ลบมอน Dungeon เก่า
+  // แต่เก็บมอน Forest ไว้
+  // ===================================================
+
+  G.monsters =
+    G.monsters.filter(
+      m =>
+        m.x < DUNGEON_START
+    );
+
+
+  // ===================================================
+  // สร้างมอนตาม Point ใน Tiled
+  // ===================================================
+
+  for(const obj of entityLayer.objects){
+
+    const kind =
+      (obj.name || "")
+      .trim()
+      .toLowerCase();
+
+
+    // PlayerStart ยังไม่ใช้ตรงนี้
+    if(kind === "playerstart"){
+      continue;
+    }
+
+
+    // Point ใน Tiled
+    const footX =
+      DUNGEON_START +
+      obj.x * TILED_SCALE;
+
+    const footY =
+      obj.y * TILED_SCALE;
+
+
+    // =================================================
+    // GOBLIN
+    // =================================================
+
+    if(kind === "goblin"){
+
+      const w = 34;
+      const h = 46;
+
+      const x =
+        footX - w / 2;
+
+      const y =
+        footY - h;
+
+      G.monsters.push({
+
+        x:x,
+        y:y,
+
+        w:w,
+        h:h,
+
+        alive:true,
+
+        type:{
+          name:"Goblin",
+          col:"#7fbf4d",
+          imgKey:null
+        },
+
+        lv:1,
+
+        combatType:"melee",
+        enemyKind:"goblin",
+
+        state:"idle",
+        dir:-1,
+
+        chasing:false,
+        stunT:0,
+
+        vy:0,
+        onGround:false,
+
+        attackT:0,
+        attackCooldown:0,
+        didDamage:false,
+
+        spawnX:x,
+        spawnY:y,
+
+        isBoss:false,
+
+        dt:0,
+        ft:0,
+        fr:0
+
+      });
+
+      continue;
+    }
+
+
+    // =================================================
+    // SKELETON
+    // =================================================
+
+    if(kind === "skeleton"){
+
+      const w = 38;
+      const h = 54;
+
+      const x =
+        footX - w / 2;
+
+      const y =
+        footY - h;
+
+      G.monsters.push({
+
+        x:x,
+        y:y,
+
+        w:w,
+        h:h,
+
+        alive:true,
+
+        type:{
+          name:"Skeleton",
+          col:"#dddddd",
+          imgKey:null
+        },
+
+        lv:3,
+
+        combatType:"melee",
+        enemyKind:"skeleton",
+
+        state:"idle",
+        dir:-1,
+
+        chasing:false,
+        stunT:0,
+
+        vy:0,
+        onGround:false,
+
+        attackT:0,
+        attackCooldown:0,
+        didDamage:false,
+
+        spawnX:x,
+        spawnY:y,
+
+        isBoss:false,
+
+        dt:0,
+        ft:0,
+        fr:0
+
+      });
+
+      continue;
+    }
+
+
+    // =================================================
+    // POISON MUSHROOM
+    // =================================================
+
+    if(kind === "mushroom"){
+
+      const w = 38;
+      const h = 46;
+
+      const x =
+        footX - w / 2;
+
+      const y =
+        footY - h;
+
+      G.monsters.push({
+
+        x:x,
+        y:y,
+
+        w:w,
+        h:h,
+
+        alive:true,
+
+        type:{
+          name:"Poison Mushroom",
+          col:"#9b59b6",
+          imgKey:null
+        },
+
+        lv:2,
+
+        combatType:"melee",
+        enemyKind:"mushroom",
+
+        state:"idle",
+        dir:-1,
+
+        chasing:false,
+        stunT:0,
+
+        vy:0,
+        onGround:false,
+
+        attackT:0,
+        attackCooldown:0,
+        didDamage:false,
+
+        spawnX:x,
+        spawnY:y,
+
+        isBoss:false,
+
+        dt:0,
+        ft:0,
+        fr:0
+
+      });
+
+      continue;
+    }
+
+
+    // =================================================
+    // FROST GUARDIAN
+    // =================================================
+
+    if(kind === "frostboss"){
+
+      const w = 72;
+      const h = 92;
+
+      const x =
+        footX - w / 2;
+
+      const y =
+        footY - h;
+
+      G.monsters.push({
+
+        x:x,
+        y:y,
+
+        w:w,
+        h:h,
+
+        alive:true,
+
+        type:{
+          name:"Frost Guardian",
+          col:"#8ad8ff",
+          imgKey:null
+        },
+
+        lv:4,
+
+        isBoss:false,
+        isFinalBoss:true,
+
+        enemyKind:"frostBoss",
+
+        bossCorrect:0,
+        bossNeed:5,
+
+        deathT:0,
+        portalSpawned:false,
+
+        bossMode:"quiz",
+
+        state:"idle",
+        dir:-1,
+
+        chasing:false,
+        stunT:0,
+
+        vy:0,
+        onGround:true,
+
+        spawnX:x,
+        spawnY:y,
+
+        attackT:0,
+        attackCooldown:0,
+        didDamage:false,
+
+        rageEndTime:0,
+        quizCooldown:0,
+
+        dt:0,
+        ft:0,
+        fr:0
+
+      });
+
+      continue;
+    }
+
+  }
+
+
+  console.log(
+    "👾 TILED MONSTERS:",
+    G.monsters.filter(
+      m => m.x >= DUNGEON_START
+    ).length
+  );
+
+}
+
+// =====================================================
+// FOREST COINS - TILED MAP
+//
+// แนวนอน = 4 เหรียญ
+// แนวตั้ง = 4 เหรียญ
+// เลือกพื้นจาก Collision ของ Forest อัตโนมัติ
+// =====================================================
+
+function spawnForestCoins(){
+
+  if(!TILED_FOREST){
+    return;
+  }
+
+
+  // -----------------------------------------
+  // หาเฉพาะพื้น Forest จาก Tiled
+  // กว้างพอให้วางเหรียญ 4 อัน
+  // -----------------------------------------
+
+  const platforms =
+    G.platforms.filter(
+      pl =>
+        pl.tiledForest === true &&
+        pl.t === "g" &&
+        pl.w >= 128
+    );
+
+
+  if(platforms.length === 0){
+
+    console.warn(
+      "⚠️ ไม่มีพื้น Forest สำหรับวางเหรียญ"
+    );
+
+    return;
+  }
+
+
+  const mapWidth =
+    TILED_FOREST.width *
+    TILED_FOREST.tilewidth;
+
+
+  // ===================================================
+  // หาพื้นที่อยู่ใกล้ X ที่เราต้องการ
+  // ===================================================
+
+  function findCoinPlatform(targetX){
+
+    // ก่อนอื่นหา platform ที่ครอบตำแหน่ง X นี้
+    const containing =
+      platforms.filter(
+        pl =>
+          targetX >= pl.x + 20 &&
+          targetX <= pl.x + pl.w - 20
+      );
+
+
+    if(containing.length > 0){
+
+      // ถ้ามีหลายชั้น
+      // เลือก platform ที่อยู่สูงกว่า
+      return containing.sort(
+        (a,b) =>
+          a.y - b.y
+      )[0];
+
+    }
+
+
+    // ถ้าไม่มี platform ครอบ X
+    // เลือกอันที่อยู่ใกล้ที่สุด
+    return [...platforms].sort(
+      (a,b)=>{
+
+        const aCenter =
+          a.x + a.w / 2;
+
+        const bCenter =
+          b.x + b.w / 2;
+
+        return (
+          Math.abs(
+            aCenter - targetX
+          )
+          -
+          Math.abs(
+            bCenter - targetX
+          )
+        );
+
+      }
+    )[0];
+
+  }
+
+
+  // ===================================================
+  // เหรียญแนวนอน 4 อัน
+  // ===================================================
+
+  function addForestRow(targetX){
+
+    const pl =
+      findCoinPlatform(
+        targetX
+      );
+
+
+    if(!pl){
+      return;
+    }
+
+
+    const gap = 32;
+
+
+    // ทำให้ 4 เหรียญอยู่กลางบริเวณ targetX
+    let startX =
+      targetX -
+      gap * 1.5;
+
+
+    // กันไม่ให้เลยขอบ platform
+    startX =
+      Math.max(
+        pl.x + 16,
+        Math.min(
+          startX,
+          pl.x +
+          pl.w -
+          gap * 3 -
+          16
+        )
+      );
+
+
+    const coinY =
+      pl.y - 28;
+
+
+    for(let i = 0; i < 4; i++){
+
+      addTiledDungeonCoin(
+
+        startX +
+        i * gap,
+
+        coinY
+
+      );
+
+    }
+
+  }
+
+
+  // ===================================================
+  // เหรียญแนวตั้ง 4 อัน
+  // ===================================================
+
+  function addForestColumn(targetX){
+
+    const pl =
+      findCoinPlatform(
+        targetX
+      );
+
+
+    if(!pl){
+      return;
+    }
+
+
+    const coinX =
+      Math.max(
+        pl.x + 16,
+        Math.min(
+          targetX,
+          pl.x + pl.w - 16
+        )
+      );
+
+
+    const bottomY =
+      pl.y - 28;
+
+
+    for(let i = 0; i < 4; i++){
+
+      addTiledDungeonCoin(
+
+        coinX,
+
+        bottomY -
+        i * 32
+
+      );
+
+    }
+
+  }
+
+
+  // ===================================================
+  // วางทั่ว Forest
+  // ===================================================
+
+
+  // ---------- ต้นด่าน ----------
+  addForestRow(
+    mapWidth * 0.10
+  );
+
+
+  // ---------- ก่อนกลาง ----------
+  addForestColumn(
+    mapWidth * 0.27
+  );
+
+
+  // ---------- กลาง ----------
+  addForestRow(
+    mapWidth * 0.44
+  );
+
+
+  // ---------- หลังกลาง ----------
+  addForestColumn(
+    mapWidth * 0.61
+  );
+
+
+  // ---------- ช่วงหลัง ----------
+  addForestRow(
+    mapWidth * 0.77
+  );
+
+
+  // ---------- ช่วงท้าย ----------
+  addForestColumn(
+    mapWidth * 0.91
+  );
+
+
+  console.log(
+    "🌳 FOREST COINS READY: 24"
+  );
+
+}
+
+// =====================================================
+// TILED DUNGEON COINS
+// ระบบเหรียญ Dungeon ใหม่
+// =====================================================
+
+
+// สร้างเหรียญโดยตรง
+function addTiledDungeonCoin(x, y){
+
+  G.coins.push({
+
+    x:x,
+    y:y,
+
+    alive:true,
+
+    frame:0,
+    ft:0
+
+  });
+
+}
+
+
+// แปลงช่อง X ใน Tiled → ตำแหน่งเกม
+function tiledDungeonX(tileX){
+
+  return (
+    DUNGEON_START +
+    tileX * 32
+  );
+
+}
+
+
+// แปลงช่อง Y ใน Tiled → ตำแหน่งเกม
+function tiledDungeonY(tileY){
+
+  return (
+    tileY * 32
+  );
+
+}
+
+
+// =====================================================
+// เหรียญแนวนอน
+// =====================================================
+
+function addDungeonCoinRow(
+  tileX,
+  tileY,
+  amount,
+  gap = 1
+){
+
+  for(let i = 0; i < amount; i++){
+
+    addTiledDungeonCoin(
+
+      tiledDungeonX(
+        tileX + i * gap
+      ),
+
+      tiledDungeonY(
+        tileY
+      )
+
+    );
+
+  }
+
+}
+
+
+// =====================================================
+// เหรียญแนวตั้ง
+// =====================================================
+
+function addDungeonCoinColumn(
+  tileX,
+  tileY,
+  amount,
+  gap = 1
+){
+
+  for(let i = 0; i < amount; i++){
+
+    addTiledDungeonCoin(
+
+      tiledDungeonX(
+        tileX
+      ),
+
+      tiledDungeonY(
+        tileY - i * gap
+      )
+
+    );
+
+  }
+
+}
+
+
+// =====================================================
+// สร้างเหรียญ Dungeon
+// =====================================================
+
+function spawnTiledDungeonCoins(){
+
+  // เก็บเหรียญ Forest
+  // ลบเฉพาะเหรียญ Dungeon เดิม
+  G.coins =
+    G.coins.filter(
+      c => c.x < DUNGEON_START
+    );
+
+
+  // =====================================
+  // TEST ROW
+  // =====================================
+
+// =====================================
+// FRONT - ช่วงต้น Dungeon
+// 5 เหรียญ
+// =====================================
+
+addDungeonCoinRow(
+  12,    // X
+  11,    // Y
+  5,     // จำนวน
+  1      // ระยะห่าง
+);
+
+// =====================================
+// BEFORE MIDDLE
+// ก่อนถึงช่วงกลาง
+// 4 เหรียญ
+// =====================================
+
+addDungeonCoinRow(
+  75,
+  9,
+  4,
+  1
+);
+
+
+// =====================================
+// MIDDLE - ช่วงกลาง Dungeon
+// 5 เหรียญ
+// =====================================
+
+addDungeonCoinRow(
+  132,
+  9,
+  5,
+  1
+);
+
+// =====================================
+// AFTER MIDDLE
+// หลังผ่านช่วงกลาง
+// 4 เหรียญ
+// =====================================
+
+addDungeonCoinRow(
+  175,
+  9,
+  4,
+  1
+);
+
+
+// =====================================
+// BACK - ช่วงท้าย Dungeon
+// 5 เหรียญ
+// =====================================
+
+addDungeonCoinRow(
+  220,
+  10,
+  5,
+  1
+);
+
+
+  console.log(
+    "🪙 TILED DUNGEON COINS READY"
+  );
+
+}
+
 // ========== BUILD LEVEL ==========
 function buildLevel(){
-  G.platforms=[];G.monsters=[];G.clouds=[];G.particles=[];G.decors=[];G.dungeonTiles=[];G.dungeonDecos=[];G.dungeonProps = [];
+  G.platforms=[];G.monsters=[];G.clouds=[];G.particles=[];G.decors=[];G.dungeonTiles=[];G.dungeonDecos=[];G.dungeonProps = [];G.hearts=[];G.fruits=[];
   G.camX=0;G.killed=0;G.bossKilled=false;
 
 function addGroundStep(x,y,w,h=160){
@@ -2771,6 +5265,23 @@ function addCoin(x,y){
   addCoin(c.x,c.y);
 
 });
+
+// ================= COINS =================
+
+G.coins = [];
+G.coinScore = 0;
+
+function addCoin(x,y){
+
+  G.coins.push({
+    x:x,
+    y:y,
+    alive:true,
+    frame:0,
+    ft:0
+  });
+
+}
 
   // CLOUDS
   for(let i=0;i<18;i++)
@@ -6196,140 +8707,14 @@ addDungeonProp(
   35
 );
 
-// =====================================================
-// DUNGEON COINS
-// เกาะละ 8 เหรียญ
-// แนวนอน + แนวตั้ง คละกัน
-// =====================================================
+spawnRandomFruits();
 
-
-// =====================================================
-// ISLAND 1
-// 4 แนวนอนบนพื้นหลัก
-// 4 แนวตั้งฝั่งขวา
-// =====================================================
-
-for(let i = 0; i < 4; i++){
-
-  addCoin(
-    ROOM_X + (5 + i) * DG_TILE,
-    PROP_I1_GROUND - 32
-  );
-
-}
-
-for(let i = 0; i < 4; i++){
-
-  addCoin(
-    ROOM_X + 34 * DG_TILE,
-    PROP_I1_GROUND - 32 - i * 24
-  );
-
-}
-
-
-
-// =====================================================
-// ISLAND 2
-// 4 แนวนอนบนชั้นสอง
-// 4 แนวตั้งกลางเกาะ
-// =====================================================
-
-for(let i = 0; i < 4; i++){
-
-  addCoin(
-    ISLAND_2_X + (6 + i) * DG_TILE,
-    PROP_I2_RAISED - 32
-  );
-
-}
-
-for(let i = 0; i < 4; i++){
-
-  addCoin(
-    ISLAND_2_X + 26 * DG_TILE,
-    PROP_I2_GROUND - 32 - i * 24
-  );
-
-}
-
-
-
-// =====================================================
-// ISLAND 3
-// 4 แนวนอนฝั่งซ้าย
-// 4 แนวตั้งใกล้ชั้นสอง
-// =====================================================
-
-for(let i = 0; i < 4; i++){
-
-  addCoin(
-    ISLAND_3_X + (6 + i) * DG_TILE,
-    PROP_I3_GROUND - 32
-  );
-
-}
-
-for(let i = 0; i < 4; i++){
-
-  addCoin(
-    ISLAND_3_X + 23 * DG_TILE,
-    PROP_I3_GROUND - 32 - i * 24
-  );
-
-}
-
-
-
-// =====================================================
-// ISLAND 4
-// 4 แนวนอนบนชั้นสอง
-// 4 แนวตั้งฝั่งขวา
-// =====================================================
-
-for(let i = 0; i < 4; i++){
-
-  addCoin(
-    ISLAND_4_X + (12 + i) * DG_TILE,
-    PROP_I4_RAISED - 32
-  );
-
-}
-
-for(let i = 0; i < 4; i++){
-
-  addCoin(
-    ISLAND_4_X + 34 * DG_TILE,
-    PROP_I4_GROUND - 32 - i * 24
-  );
-
-}
-
-
-
-// =====================================================
-// ISLAND 5
-// 4 แนวนอนพื้นซ้าย
-// 4 แนวตั้งบนช่วงชั้นสอง
-// =====================================================
-
-for(let i = 0; i < 4; i++){
-
-  addCoin(
-    ISLAND_5_X + (6 + i) * DG_TILE,
-    PROP_I5_GROUND - 32
-  );
-
-}
-
-for(let i = 0; i < 4; i++){
-
-  addCoin(
-    ISLAND_5_X + 31 * DG_TILE,
-    PROP_I5_RAISED - 24 - i * 24
-  );
-
-}
+// แตงโม固定ในดันเจี้ยนชั้นสอง
+addFruit(
+  ISLAND_5_X + 31 * DG_TILE,
+  PROP_I5_RAISED - 24,
+  "watermelon"
+);
 
 }
 
@@ -6378,19 +8763,44 @@ function updatePlayer(){
 
   }else{
 
+
+    // ความเร็วจริงของผู้เล่น
+    // ถ้ากินพริก speedMul จะเป็น 1.3
+
+    const moveSpeed =
+      SPD *
+      P.speedMul;
+
+
     if(isL()){
-      P.vx = -SPD;
-      P.facing = -1;
-    }
-    else if(isR()){
-      P.vx = SPD;
-      P.facing = 1;
-    }
-    else{
-      P.vx *= 0.6;
+
+      P.vx =
+        -moveSpeed;
+
+      P.facing =
+        -1;
+
     }
 
-  }
+    else if(isR()){
+
+      P.vx =
+        moveSpeed;
+
+      P.facing =
+        1;
+
+    }
+
+    else{
+
+      P.vx *=
+        0.6;
+
+    }
+
+
+}
 
   const jNow = isJ();
 
@@ -6410,6 +8820,58 @@ function updatePlayer(){
   P.vy+=GRAVITY;
   if(P.vy>16)P.vy=16;
   P.x+=P.vx; P.y+=P.vy;
+// =====================================================
+// TILED DUNGEON HARD BOUNDARY
+// ห้ามผู้เล่นออกนอกขอบซ้าย / ขวาของแมพ Tiled
+// =====================================================
+
+if(
+  TILED_DUNGEON &&
+  G.camX >= DUNGEON_START - 200
+){
+
+  const tiledLeft =
+    DUNGEON_START;
+
+  const tiledRight =
+    DUNGEON_START +
+    TILED_DUNGEON.width *
+    TILED_DUNGEON.tilewidth *
+    TILED_SCALE;
+
+
+  // -----------------------------
+  // ขอบซ้าย
+  // -----------------------------
+
+  if(P.x < tiledLeft){
+
+    P.x = tiledLeft;
+
+    if(P.vx < 0){
+      P.vx = 0;
+    }
+
+  }
+
+
+  // -----------------------------
+  // ขอบขวา
+  // -----------------------------
+
+  if(P.x + P.w > tiledRight){
+
+    P.x =
+      tiledRight - P.w;
+
+    if(P.vx > 0){
+      P.vx = 0;
+    }
+
+  }
+
+}
+
   if(P.x<0)P.x=0;
   if(P.x>WORLD_W-P.w)P.x=WORLD_W-P.w;
   P.onGround=false;
@@ -6425,7 +8887,7 @@ function updatePlayer(){
 // DUNGEON WALL + CEILING COLLISION
 // =====================================================
 
-if(P.x >= DUNGEON_START){
+if(P.x + P.w >= DUNGEON_START){
 
   for(const pl of G.platforms){
 
@@ -6566,7 +9028,39 @@ for(const p of G.portals){
   const th=CW*0.42;
   if(wx>th)G.camX+=wx-th;
   if(wx<80)G.camX=Math.max(0,G.camX-(80-wx));
-  G.camX=Math.max(0,Math.min(G.camX,WORLD_W-CW));
+  if(
+  TILED_DUNGEON &&
+  P.x + P.w >= DUNGEON_START
+){
+
+  const tiledDungeonRight =
+    DUNGEON_START +
+    TILED_DUNGEON.width *
+    TILED_DUNGEON.tilewidth *
+    TILED_SCALE;
+
+
+  G.camX =
+    Math.max(
+      DUNGEON_START,
+      Math.min(
+        G.camX,
+        tiledDungeonRight - CW
+      )
+    );
+
+}else{
+
+  G.camX =
+    Math.max(
+      0,
+      Math.min(
+        G.camX,
+        WORLD_W - CW
+      )
+    );
+
+}
 }
 
 // =====================================================
@@ -7600,14 +10094,19 @@ applyPoison();
 // POISON SYSTEM
 // =====================================================
 
-function applyPoison(){
+function applyPoison(ticks = 3){
 
-  // โดนพิษใหม่ = รีเซ็ตเป็น 3 tick
-  // ไม่ stack ซ้อนกัน
-  P.poisonTicksLeft = 3;
+  // ถ้าไม่ได้ส่งจำนวนมา
+  // ระบบมอนสเตอร์เดิมยังใช้ 3 ครั้งเหมือนเดิม
 
-  // 60 frames ≈ 1 วินาที
-  P.poisonTickT = 60;
+  P.poisonTicksLeft =
+    ticks;
+
+
+  // เริ่มนับเวลาพิษ
+
+  P.poisonTickT =
+    60;
 
 }
 
@@ -8547,9 +11046,76 @@ if(m.y > CH + 100){
 }
 
 function killMonster(m){
-  m.alive=false;m.dt=0;G.killed++;G.score++;
-  spawnParts(m.x+m.w/2,m.y+m.h/2,m.type.col);
+
+
+  m.alive =
+    false;
+
+  m.dt =
+    0;
+
+  G.killed++;
+
+
+
+  // =================================
+  // คะแนนมอนสเตอร์
+  // =================================
+
+  // ปกติได้ 1
+  // ถ้าคำตอบที่ใช้ส้ม x2
+  // รางวัลของมอนสเตอร์นี้เป็น 2
+
+  const reward =
+
+    m.doubleRewardPending
+
+    ?
+
+    2
+
+    :
+
+    1;
+
+
+
+  G.score +=
+    reward;
+
+
+  m.doubleRewardPending =
+    false;
+
+
+
+  // =================================
+  // DROP HEART
+  // =================================
+
+  dropHeartsFromMonster(
+    m
+  );
+
+
+
+  // particle เดิมตอนมอนสเตอร์ตาย
+
+  spawnParts(
+
+    m.x +
+    m.w / 2,
+
+    m.y +
+    m.h / 2,
+
+    m.type.col
+
+  );
+
+
   updateHUD();
+
 }
 
 // ========== PARTICLES ==========
@@ -8754,12 +11320,30 @@ function drawBG(){
   // DUNGEON
   // ===================================================
 
-  if(P.x >= DUNGEON_START){
+if(P.x >= DUNGEON_START){
 
-    drawDungeonParallax();
+  // ถ้าใช้ Dungeon จาก Tiled
+  // ให้พื้นหลังเป็นดำสนิท
+  if(TILED_DUNGEON){
+
+    ctx.fillStyle = "#000000";
+
+    ctx.fillRect(
+      0,
+      0,
+      CW,
+      CH
+    );
 
     return;
   }
+
+
+  // fallback Dungeon แบบเก่า
+  drawDungeonParallax();
+
+  return;
+}
 
 
   // ===================================================
@@ -10799,28 +13383,158 @@ function drawFrostRageUI(){
 
 // ========== GAME LOOP ==========
 function loop(){
-  if(!G.running)return;
-  updatePoison();updatePlayer();updateMonsters();updateParts();updateCoins();updateDamageTexts();
-  ctx.clearRect(0,0,CW,CH);
-  drawBG();
+
+  if(!G.running){
+    return;
+  }
+
+
+  // =========================
+  // UPDATE
+  // =========================
+
+  updateItemEffects();
+
+  updatePoison();
+
+  updatePlayer();
+
+  updateMonsters();
+
+  updateParts();
+
+  updateCoins();
+
+  updateHeartDrops();
+
+  updateFruits();
+
+  updateDamageTexts();
+
+
+
+  // =========================
+  // CLEAR
+  // =========================
+
+  ctx.clearRect(
+    0,
+    0,
+    CW,
+    CH
+  );
+
+
+
+  // =========================
+  // DRAW WORLD
+  // =========================
+
+const usingTiledForest =
+  P.x < DUNGEON_START &&
+  TILED_FOREST &&
+  TILED_FOREST_TILESETS.length > 0;
+
+
+drawBG();
+
+
+if(usingTiledForest){
+
+  // Forest ใหม่จาก Tiled
+  drawTiledForestLayer(
+    "Ground"
+  );
+
+  drawTiledForestLayer(
+    "Prop"
+  );
+
+}
+else if(
+  P.x >= DUNGEON_START &&
+  TILED_DUNGEON
+){
+
+  // Dungeon ใหม่จาก Tiled
+  drawTiledLayer(
+    "Background"
+  );
+
+  drawTiledLayer(
+    "Ground"
+  );
+
+  drawTiledLayer(
+    "Prop"
+  );
+
+}
+else{
+
+
   drawDungeon();
   drawDungeonDecos();
   drawDungeonProps();
+
+}
+
   //debugTerrain();
+
+if(!usingTiledForest){
+
   drawDecor();
   drawPlatforms();
-  drawPortals();
   drawProps();
+
+}
+
+
+// Portal ยังวาดตามปกติ
+drawPortals();
+
   //drawFlag();
+
+
+
+  // =========================
+  // DRAW ITEMS
+  // =========================
+
   drawCoins();
+
+  drawFruits();
+
+  drawHeartDrops();
+
+
+
+  // =========================
+  // DRAW CHARACTERS
+  // =========================
+
   drawMonsters();
+
   drawParticles();
+
   drawPlayer();
+
   drawDamageTexts();
+
   drawStunIndicators();
+
   drawFrostRageUI();
+
   drawComboMsg();
-  requestAnimationFrame(loop);
+
+  drawBuffUI();
+
+
+
+  requestAnimationFrame(
+    loop
+  );
+
 }
 
 
@@ -11069,6 +13783,1636 @@ function drawCoins(){
   }
 }
 
+// =====================================================
+// ผลไม้ 4 ชนิด
+//
+// col = ช่องแนวนอนในรูป
+// row = ช่องแนวตั้งในรูป
+//
+// ผลไม้จะไม่เล่น animation frame
+// จะใช้รูปเดียว แล้วลอยขึ้นลงแทน
+// =====================================================
+
+const FRUIT_TYPES = {
+
+
+  // =========================
+  // พริกแดง
+  // SPEED x1.3 / 3 วินาที
+  // =========================
+
+  chili:{
+
+    name:"พริกแดง",
+
+    col:30,
+    row:2,
+
+    color:"#ff6b4a",
+
+    notice:
+      "พริกแดง! SPEED x1.3 - 3 วินาที",
+
+    effect(){
+
+      P.speedMul = 1.3;
+
+      P.speedBoostMs = 3000;
+
+    }
+
+  },
+
+
+  // =========================
+  // ส้ม
+  // คะแนนคำถามถัดไป x2
+  // =========================
+
+  orange:{
+
+    name:"ส้ม",
+
+    col:9,
+    row:0,
+
+    color:"#ffd166",
+
+    notice:
+      "ส้ม! คำถามถัดไป SCORE x2",
+
+    effect(){
+
+      G.nextQuestionDouble++;
+
+    }
+
+  },
+
+
+  // =========================
+  // แตงโม
+  // HP +20
+  // =========================
+
+  watermelon:{
+
+    name:"แตงโม",
+
+    col:26,
+    row:3,
+
+    color:"#65ff88",
+
+    notice:
+      "แตงโม! HP +20",
+
+    effect(){
+
+      G.hp =
+        Math.min(
+          100,
+          G.hp + 20
+        );
+
+      updateHUD();
+
+    }
+
+  },
+
+
+  // =========================
+  // พริกเขียว
+  // พิษ 4 ครั้ง
+  // ครั้งละ -5
+  // =========================
+
+  greenChili:{
+
+    name:"พริกเขียว",
+
+    col:28,
+    row:3,
+
+    color:"#8cff66",
+
+    notice:
+      "พริกเขียว! ติดพิษ -5 HP x4",
+
+    effect(){
+
+      applyPoison(4);
+
+    }
+
+  }
+
+};
+
+
+
+const FRUIT_KEYS =
+  Object.keys(
+    FRUIT_TYPES
+  );
+
+
+  // =====================================================
+// GET FRUIT ICON FRAME
+// รองรับได้ทั้งแบบ sx/sy และ col/row
+// =====================================================
+
+function getFruitIconFrame(typeKey){
+
+  const data =
+    FRUIT_TYPES[typeKey];
+
+  if(!data){
+    return null;
+  }
+
+  // ถ้าไฟล์เธอใช้ sx / sy อยู่แล้ว
+  if(
+    data.sx !== undefined &&
+    data.sy !== undefined
+  ){
+    return {
+      sx:data.sx,
+      sy:data.sy
+    };
+  }
+
+  // ถ้าไฟล์เธอใช้ col / row
+  if(
+    data.col !== undefined &&
+    data.row !== undefined
+  ){
+    return {
+      sx:data.col * FRUIT_FRAME_W,
+      sy:data.row * FRUIT_FRAME_H
+    };
+  }
+
+  return null;
+}
+
+
+// =====================================================
+// ประเภท platform ที่ไอเทมสามารถเกิดได้
+// =====================================================
+
+function isItemPlatform(pl){
+
+return (
+
+  pl.t === "g" ||
+
+  pl.t === "p" ||
+
+  pl.t === "dg-floor" ||
+
+  pl.t === "dg-step" ||
+
+  pl.t === "dg-floating" ||
+
+  // พื้น Collision จาก Tiled
+  pl.t === "dg"
+
+);
+
+}
+
+
+
+// =====================================================
+// สุ่ม array
+// =====================================================
+
+function shuffleItems(arr){
+
+  const copy = [...arr];
+
+  for(
+    let i = copy.length - 1;
+    i > 0;
+    i--
+  ){
+
+    const j =
+      Math.floor(
+        Math.random() *
+        (i + 1)
+      );
+
+    const temp =
+      copy[i];
+
+    copy[i] =
+      copy[j];
+
+    copy[j] =
+      temp;
+
+  }
+
+  return copy;
+
+}
+
+
+
+// =====================================================
+// ข้อความแจ้งเตือนบนจอ
+// =====================================================
+
+let itemNoticeTimer = null;
+
+
+function showItemNotice(
+  text,
+  color = "#ffffff"
+){
+
+  const el =
+    document.getElementById(
+      "item-notice"
+    );
+
+  if(!el){
+    return;
+  }
+
+
+  el.textContent =
+    text;
+
+  el.style.color =
+    color;
+
+
+  // restart animation
+  el.classList.remove(
+    "show"
+  );
+
+  void el.offsetWidth;
+
+  el.classList.add(
+    "show"
+  );
+
+
+  if(itemNoticeTimer){
+
+    clearTimeout(
+      itemNoticeTimer
+    );
+
+  }
+
+
+  itemNoticeTimer =
+    setTimeout(()=>{
+
+      el.classList.remove(
+        "show"
+      );
+
+    },1450);
+
+}
+
+
+
+// =====================================================
+// HEART DROP
+// =====================================================
+
+function dropHeartsFromMonster(m){
+
+  if(!m){
+    return;
+  }
+
+
+  // สุ่ม 1 หรือ 2 หัวใจ
+
+  const amount =
+    1 +
+    Math.floor(
+      Math.random() * 2
+    );
+
+
+  for(
+    let i = 0;
+    i < amount;
+    i++
+  ){
+
+    let dir;
+
+
+    // ถ้ามี 2 ดวง
+    // ให้กระเด็นคนละด้าน
+
+    if(amount === 2){
+
+      dir =
+        i === 0
+        ? -1
+        : 1;
+
+    }else{
+
+      dir =
+        Math.random() < .5
+        ? -1
+        : 1;
+
+    }
+
+
+    G.hearts.push({
+
+      x:
+        m.x +
+        m.w / 2 -
+        8,
+
+      y:
+        m.y + 4,
+
+
+      // กระเด็นซ้าย / ขวา
+
+      vx:
+        dir *
+        (
+          1.5 +
+          Math.random() * 1.8
+        ),
+
+
+      // เด้งขึ้น
+
+      vy:
+        -4.5 -
+        Math.random() * 1.8,
+
+
+      alive:true,
+
+      settled:false,
+
+
+      // animation หมุนหัวใจ
+
+      frame:
+        Math.floor(
+          Math.random() *
+          HEART_FRAMES.length
+        ),
+
+      frameTimer:0,
+
+
+      // ใช้ตอนหัวใจลอยเบา ๆ
+      bobSeed:
+        Math.random() *
+        Math.PI *
+        2
+
+    });
+
+  }
+
+}
+
+
+
+// =====================================================
+// UPDATE HEART
+// =====================================================
+
+function updateHeartDrops(){
+
+  if(G.inQ){
+    return;
+  }
+
+
+  const playerCX =
+    P.x + P.w / 2;
+
+  const playerCY =
+    P.y + P.h / 2;
+
+
+  G.hearts =
+    G.hearts.filter(
+      heart => {
+
+
+        if(!heart.alive){
+
+          return false;
+
+        }
+
+
+
+        // =========================
+        // หมุนหัวใจ
+        // =========================
+
+        heart.frameTimer++;
+
+
+        if(
+          heart.frameTimer > 5
+        ){
+
+          heart.frameTimer = 0;
+
+          heart.frame =
+            (
+              heart.frame + 1
+            )
+            %
+            HEART_FRAMES.length;
+
+        }
+
+
+
+        // =========================
+        // ตอนยังลอยอยู่
+        // ให้มีแรงกระเด็น + gravity
+        // =========================
+
+        if(!heart.settled){
+
+
+          const oldBottom =
+            heart.y +
+            HEART_FRAME_H;
+
+
+          heart.x +=
+            heart.vx;
+
+          heart.y +=
+            heart.vy;
+
+
+          heart.vy +=
+            0.24;
+
+
+          heart.vx *=
+            0.985;
+
+
+
+          // =========================
+          // ตรวจว่าตกบนพื้นหรือยัง
+          // =========================
+
+          if(
+            heart.vy >= 0
+          ){
+
+            for(
+              const pl
+              of G.platforms
+            ){
+
+              if(
+                !isItemPlatform(pl)
+              ){
+                continue;
+              }
+
+
+              const touchX =
+
+                heart.x +
+                HEART_FRAME_W >
+                pl.x
+
+                &&
+
+                heart.x <
+                pl.x +
+                pl.w;
+
+
+              if(!touchX){
+                continue;
+              }
+
+
+              const newBottom =
+                heart.y +
+                HEART_FRAME_H;
+
+
+              if(
+
+                oldBottom <=
+                pl.y + 4
+
+                &&
+
+                newBottom >=
+                pl.y
+
+              ){
+
+                heart.y =
+                  pl.y -
+                  HEART_FRAME_H;
+
+
+                heart.vy = 0;
+
+                heart.vx = 0;
+
+                heart.settled =
+                  true;
+
+
+                break;
+
+              }
+
+            }
+
+          }
+
+
+          // ตกออกจากแมพ
+          // ก็ลบทิ้ง
+
+          if(
+            heart.y >
+            CH + 200
+          ){
+
+            return false;
+
+          }
+
+        }
+
+
+
+        // =========================
+        // หัวใจลอยเบา ๆ หลังตกพื้น
+        // =========================
+
+        const bob =
+
+          heart.settled
+
+          ?
+
+          Math.sin(
+            performance.now() /
+            180 +
+            heart.bobSeed
+          ) * 2
+
+          :
+
+          0;
+
+
+
+        // =========================
+        // PLAYER เก็บหัวใจ
+        // =========================
+
+        const heartCX =
+          heart.x + 8;
+
+        const heartCY =
+          heart.y +
+          bob +
+          8;
+
+
+        const dx =
+          Math.abs(
+            playerCX -
+            heartCX
+          );
+
+        const dy =
+          Math.abs(
+            playerCY -
+            heartCY
+          );
+
+
+        if(
+          dx < 22 &&
+          dy < 26
+        ){
+
+          heart.alive =
+            false;
+
+
+          // +5 HP
+          // แต่ไม่เกิน 100
+
+          G.hp =
+            Math.min(
+              100,
+              G.hp + 5
+            );
+
+
+          updateHUD();
+
+
+          showItemNotice(
+
+            "HEART +5 HP",
+
+            "#ff6b81"
+
+          );
+
+
+          spawnParts(
+
+            heart.x + 8,
+
+            heart.y + 8,
+
+            "#ff5c7a"
+
+          );
+
+
+          return false;
+
+        }
+
+
+        return true;
+
+      }
+    );
+
+}
+
+
+
+// =====================================================
+// DRAW HEART
+// =====================================================
+
+function drawHeartDrops(){
+
+  if(
+
+    !heartSheet.complete
+
+    ||
+
+    heartSheet.naturalWidth === 0
+
+  ){
+
+    return;
+
+  }
+
+
+  for(
+    const heart
+    of G.hearts
+  ){
+
+
+    if(!heart.alive){
+      continue;
+    }
+
+
+    const screenX =
+      heart.x -
+      G.camX;
+
+
+    if(
+
+      screenX < -50
+
+      ||
+
+      screenX > CW + 50
+
+    ){
+
+      continue;
+
+    }
+
+
+    const bob =
+
+      heart.settled
+
+      ?
+
+      Math.sin(
+        performance.now() /
+        180 +
+        heart.bobSeed
+      ) * 2
+
+      :
+
+      0;
+
+
+
+    const frameIndex =
+      HEART_FRAMES[
+        heart.frame
+      ];
+
+
+    ctx.save();
+
+    ctx.imageSmoothingEnabled =
+      false;
+
+
+    ctx.drawImage(
+
+      heartSheet,
+
+
+      // source
+      frameIndex *
+      HEART_FRAME_W,
+
+      0,
+
+      HEART_FRAME_W,
+
+      HEART_FRAME_H,
+
+
+      // destination
+      screenX - 6,
+
+      heart.y +
+      bob -
+      6,
+
+      28,
+
+      28
+
+    );
+
+
+    ctx.restore();
+
+  }
+
+}
+
+
+
+// =====================================================
+// FRUIT
+// =====================================================
+
+function addFruit(
+  x,
+  y,
+  type
+){
+
+  G.fruits.push({
+
+    x:x,
+
+    y:y,
+
+    type:type,
+
+    alive:true,
+
+    bobSeed:
+      Math.random() *
+      Math.PI *
+      2
+
+  });
+
+}
+
+
+
+// =====================================================
+// สุ่มผลไม้ตาม platform
+//
+// แต่ละเกม:
+// - ผลไม้ประมาณ 5-7 ผล
+// - ใช้ชนิดแค่ 3 หรือ 4 ชนิด
+// - ตำแหน่งสุ่มใหม่
+// =====================================================
+
+function spawnRandomFruits(){
+
+
+  G.fruits = [];
+
+
+  // บางเกมใช้ 3 ชนิด
+  // บางเกมใช้ 4 ชนิด
+
+  const typeAmount =
+
+    Math.random() < .5
+
+    ?
+
+    3
+
+    :
+
+    4;
+
+
+
+  const activeTypes =
+
+    shuffleItems(
+      FRUIT_KEYS
+    )
+    .slice(
+      0,
+      typeAmount
+    );
+
+
+
+  // platform ที่เหมาะกับการวางผลไม้
+
+  const possiblePlatforms =
+
+    shuffleItems(
+
+      G.platforms.filter(
+
+        pl => {
+
+          return (
+
+            isItemPlatform(pl)
+
+            &&
+
+            pl.w >= 64
+
+            &&
+
+            pl.y > 70
+
+            &&
+
+            pl.y < CH - 15
+
+          );
+
+        }
+
+      )
+
+    );
+
+
+
+  // เกมหนึ่งมี 5-7 ผล
+
+  const wantedFruit =
+
+    5 +
+
+    Math.floor(
+      Math.random() * 3
+    );
+
+
+
+  const usedX = [];
+
+
+
+  for(
+    const pl
+    of possiblePlatforms
+  ){
+
+
+    if(
+      G.fruits.length >=
+      wantedFruit
+    ){
+
+      break;
+
+    }
+
+
+
+    const minX =
+      pl.x + 22;
+
+
+    const maxX =
+      pl.x +
+      pl.w -
+      38;
+
+
+
+    if(
+      maxX <= minX
+    ){
+
+      continue;
+
+    }
+
+
+
+    const x =
+
+      minX +
+
+      Math.random() *
+      (
+        maxX -
+        minX
+      );
+
+
+
+    // ไม่ให้เกิดใกล้จุดเริ่มมากเกินไป
+
+    if(
+      x < 250
+    ){
+
+      continue;
+
+    }
+
+
+
+    // ไม่ให้ผลไม้อยู่ชิดกันเกินไป
+
+    const tooClose =
+
+      usedX.some(
+
+        oldX =>
+
+          Math.abs(
+            oldX - x
+          )
+          <
+          450
+
+      );
+
+
+    if(tooClose){
+
+      continue;
+
+    }
+
+
+
+    // อย่างน้อยแต่ละชนิด
+    // พยายามให้ได้เกิดก่อน
+
+    let type;
+
+
+    if(
+      G.fruits.length <
+      activeTypes.length
+    ){
+
+      type =
+        activeTypes[
+          G.fruits.length
+        ];
+
+    }else{
+
+      type =
+
+        activeTypes[
+
+          Math.floor(
+
+            Math.random() *
+            activeTypes.length
+
+          )
+
+        ];
+
+    }
+
+
+
+    addFruit(
+
+      x,
+
+      pl.y - 24,
+
+      type
+
+    );
+
+
+    usedX.push(
+      x
+    );
+
+  }
+
+}
+
+
+
+// =====================================================
+// UPDATE FRUIT
+// =====================================================
+
+function updateFruits(){
+
+  if(G.inQ){
+    return;
+  }
+
+
+  const playerCX =
+    P.x +
+    P.w / 2;
+
+
+  const playerCY =
+    P.y +
+    P.h / 2;
+
+
+
+  G.fruits =
+
+    G.fruits.filter(
+
+      fruit => {
+
+
+        if(!fruit.alive){
+
+          return false;
+
+        }
+
+
+
+        // แค่ขึ้นลง
+        // ไม่มี sprite animation
+
+        const bob =
+
+          Math.sin(
+
+            performance.now() /
+            300 +
+
+            fruit.bobSeed
+
+          )
+
+          * 4;
+
+
+
+        const fruitCX =
+          fruit.x + 8;
+
+
+        const fruitCY =
+          fruit.y +
+          bob +
+          8;
+
+
+
+        const dx =
+          Math.abs(
+            playerCX -
+            fruitCX
+          );
+
+
+        const dy =
+          Math.abs(
+            playerCY -
+            fruitCY
+          );
+
+
+
+        if(
+          dx < 23 &&
+          dy < 27
+        ){
+
+
+          fruit.alive =
+            false;
+
+
+          const data =
+            FRUIT_TYPES[
+              fruit.type
+            ];
+
+
+
+          // ใช้ passive
+
+data.effect();
+
+
+if(fruit.type === "orange"){
+
+  showItemNotice(
+
+    "ORANGE x2 เก็บไว้ " +
+    G.nextQuestionDouble +
+    " ครั้ง",
+
+    "#ffd166"
+
+  );
+
+}else{
+
+  showItemNotice(
+    data.notice,
+    data.color
+  );
+
+}
+
+
+
+          // particle ตอนกิน
+
+          spawnParts(
+
+            fruit.x + 8,
+
+            fruit.y + 8,
+
+            data.color
+
+          );
+
+
+          return false;
+
+        }
+
+
+        return true;
+
+      }
+
+    );
+
+}
+
+
+
+// =====================================================
+// DRAW FRUIT
+// =====================================================
+
+function drawFruits(){
+
+  if(
+
+    !fruitSheet.complete
+
+    ||
+
+    fruitSheet.naturalWidth === 0
+
+  ){
+
+    return;
+
+  }
+
+
+
+  for(
+    const fruit
+    of G.fruits
+  ){
+
+
+    if(!fruit.alive){
+      continue;
+    }
+
+
+    const data =
+      FRUIT_TYPES[
+        fruit.type
+      ];
+
+
+    if(!data){
+      continue;
+    }
+
+
+
+    const screenX =
+      fruit.x -
+      G.camX;
+
+
+
+    if(
+
+      screenX < -50
+
+      ||
+
+      screenX > CW + 50
+
+    ){
+
+      continue;
+
+    }
+
+
+
+    // ผลไม้ไม่เล่น frame
+    // แค่ลอยขึ้นลง
+
+    const bob =
+
+      Math.sin(
+
+        performance.now() /
+        300 +
+
+        fruit.bobSeed
+
+      )
+
+      * 4;
+
+
+
+    ctx.save();
+
+    ctx.imageSmoothingEnabled =
+      false;
+
+
+
+    ctx.drawImage(
+
+      fruitSheet,
+
+
+      // ตำแหน่งรูปใน sprite sheet
+
+      data.col *
+      FRUIT_FRAME_W,
+
+      data.row *
+      FRUIT_FRAME_H,
+
+      FRUIT_FRAME_W,
+
+      FRUIT_FRAME_H,
+
+
+      // ตำแหน่งในโลกเกม
+
+      screenX - 6,
+
+      fruit.y +
+      bob -
+      6,
+
+
+      // ขนาดในเกม
+
+      28,
+
+      28
+
+    );
+
+
+    ctx.restore();
+
+  }
+
+}
+
+// =====================================================
+// DRAW BUFF UI
+// กล่องบัฟเล็ก ๆ ด้านขวา
+// =====================================================
+
+function drawBuffUI(){
+
+  if(
+    !fruitSheet.complete ||
+    fruitSheet.naturalWidth === 0
+  ){
+    return;
+  }
+
+  const buffs = [];
+
+
+  // =========================
+  // พริกแดง = เร็ว 3 วิ
+  // =========================
+  if(P.speedBoostMs > 0){
+
+    buffs.push({
+      key:"chili",
+      title:"Speed x1.3",
+      sub:
+        Math.ceil(P.speedBoostMs / 1000) + "s",
+      border:"#ff9f43"
+    });
+
+  }
+
+
+// =========================
+// ส้ม = สามารถ STACK ได้
+// ส้ม 2 ลูก = แสดง 2 ช่อง
+// =========================
+
+for(
+  let i = 0;
+  i < G.nextQuestionDouble;
+  i++
+){
+
+  buffs.push({
+
+    key:"orange",
+
+    title:"Score x2",
+
+sub:
+  "Ready",
+
+    border:"#ffd166"
+
+  });
+
+}
+
+
+  // =========================
+  // พริกเขียว = พิษ
+  // =========================
+  if(P.poisonTicksLeft > 0){
+
+    const poisonSec =
+      Math.max(
+        1,
+        Math.ceil(
+          (P.poisonTicksLeft - 1) +
+          (P.poisonTickT / 60)
+        )
+      );
+
+    buffs.push({
+      key:"greenChili",
+      title:"Poison",
+      sub:poisonSec + "s",
+      border:"#8cff66"
+    });
+
+  }
+
+
+  // ไม่มีบัฟ ไม่ต้องวาด
+  if(buffs.length === 0){
+    return;
+  }
+
+
+  const panelW = 150;
+  const rowH = 38;
+  const gap = 8;
+
+  const startX =
+    CW - panelW - 12;
+
+  const startY =
+    90;
+
+
+  ctx.save();
+
+  ctx.imageSmoothingEnabled = false;
+
+  ctx.font =
+    "8px 'Press Start 2P', monospace";
+
+  ctx.textBaseline =
+    "top";
+
+
+  for(let i=0;i<buffs.length;i++){
+
+    const b =
+      buffs[i];
+
+    const y =
+      startY + i * (rowH + gap);
+
+
+    // กล่องพื้นหลัง
+    ctx.globalAlpha = 0.8;
+    ctx.fillStyle = "#111";
+    ctx.fillRect(
+      startX,
+      y,
+      panelW,
+      rowH
+    );
+
+    ctx.globalAlpha = 1;
+
+
+    // ขอบกล่อง
+    ctx.strokeStyle =
+      b.border;
+
+    ctx.lineWidth = 2;
+
+    ctx.strokeRect(
+      startX,
+      y,
+      panelW,
+      rowH
+    );
+
+
+    // วาดไอคอนผลไม้
+    const frame =
+      getFruitIconFrame(b.key);
+
+    if(frame){
+
+      ctx.drawImage(
+        fruitSheet,
+        frame.sx,
+        frame.sy,
+        FRUIT_FRAME_W,
+        FRUIT_FRAME_H,
+        startX + 6,
+        y + 7,
+        24,
+        24
+      );
+
+    }
+
+
+    // หัวข้อบัฟ
+    ctx.fillStyle =
+      "#ffffff";
+
+    ctx.fillText(
+      b.title,
+      startX + 36,
+      y + 8
+    );
+
+
+    // เวลาหรือรายละเอียด
+    ctx.fillStyle =
+      "#ffd166";
+
+    ctx.fillText(
+      b.sub,
+      startX + 36,
+      y + 20
+    );
+
+  }
+
+  ctx.restore();
+
+}
+
+// =====================================================
+// SPEED PASSIVE TIMER
+// =====================================================
+
+function updateItemEffects(){
+
+
+  const now =
+    performance.now();
+
+
+  if(!G.itemClock){
+
+    G.itemClock =
+      now;
+
+    return;
+
+  }
+
+
+  const delta =
+    now -
+    G.itemClock;
+
+
+  G.itemClock =
+    now;
+
+
+
+  // ตอนตอบคำถาม
+  // หยุดเวลา passive ไว้
+
+  if(G.inQ){
+
+    return;
+
+  }
+
+
+
+  if(
+    P.speedBoostMs > 0
+  ){
+
+
+    P.speedBoostMs -=
+      delta;
+
+
+
+    if(
+      P.speedBoostMs <= 0
+    ){
+
+      P.speedBoostMs = 0;
+
+      P.speedMul = 1;
+
+    }
+
+  }
+
+}
+
 function drawPortals(){
 
     if(!portalImg.complete) return;
@@ -11254,9 +15598,44 @@ if(
   G.curMonster.enemyKind === "forestBoss"
 ){
   const forestBoss = G.curMonster;
-
   forestBoss.bossCorrect++;
-  G.score += 1;
+
+
+  let forestGain =
+    1;
+
+
+  // ถ้ามี passive จากส้ม
+
+if(
+  G.nextQuestionDouble > 0
+){
+
+  G.nextQuestionDouble =
+    Math.max(
+      0,
+      G.nextQuestionDouble - 1
+    );
+
+  forestGain =
+    2;
+
+
+  showItemNotice(
+
+    "ORANGE x2! เหลือ " +
+    G.nextQuestionDouble +
+    " Stack",
+
+    "#ffd166"
+
+  );
+
+}
+
+
+  G.score +=
+    forestGain;
 
   // ล็อกคำตอบข้อนี้ทันที กันกดซ้ำแล้วนับหลายครั้ง
   G.curQ = null;
@@ -11267,7 +15646,10 @@ if(
   inp.classList.add("ok");
   hint.textContent = "";
   fb.className = "ok";
-  fb.textContent = "✓ ถูกต้อง! +1 คะแนน";
+fb.textContent =
+  "✓ ถูกต้อง! +" +
+  forestGain +
+  " คะแนน";
 
   document.getElementById("q-tries").textContent =
     "MINOTAUR: " + forestBoss.bossCorrect + " / " + forestBoss.bossNeed;
@@ -11362,7 +15744,42 @@ if(
 
 
   // ข้อละ 1.4 คะแนน
-  G.score += 1.4;
+G.score += 1.4;  // คะแนนปกติ
+  let frostGain =
+    1.4;
+
+
+  // ถ้ามี passive ส้ม
+
+if(
+  G.nextQuestionDouble > 0
+){
+
+  G.nextQuestionDouble =
+    Math.max(
+      0,
+      G.nextQuestionDouble - 1
+    );
+
+  frostGain =
+    2.8;
+
+
+  showItemNotice(
+
+    "ORANGE x2! เหลือ " +
+    G.nextQuestionDouble +
+    " Stack",
+
+    "#ffd166"
+
+  );
+
+}
+
+
+  G.score +=
+    frostGain;
 
   updateHUD();
 
@@ -11374,8 +15791,10 @@ if(
   hint.textContent = "";
 
 
-  fb.textContent =
-    "✓ ถูกต้อง! +1.4 คะแนน";
+fb.textContent =
+    "✓ ถูกต้อง! +" +
+    frostGain.toFixed(1) +
+    " คะแนน";
 
 
   document
@@ -11397,7 +15816,7 @@ if(
   ){
 
     fb.textContent =
-      "✓ ครบ 5 ข้อ! +7 คะแนน — BOSS DEFEATED!";
+      "✓ ครบ 5 ข้อ! BOSS DEFEATED!";
 
 
     document
@@ -11508,8 +15927,69 @@ startFrostDeath(
 
   return;
 }
-    inp.classList.add('ok');
-    fb.textContent='✓ ถูกต้อง! +1 คะแนน';fb.className='ok';
+    // ==========================================
+    // ORANGE x2 - NORMAL MONSTER
+    // ==========================================
+
+    let normalDoubleUsed =
+      false;
+
+
+    if(
+      G.nextQuestionDouble > 0 &&
+      G.curMonster
+    ){
+
+G.nextQuestionDouble =
+  Math.max(
+    0,
+    G.nextQuestionDouble - 1
+  );
+
+
+      G.curMonster
+        .doubleRewardPending =
+        true;
+
+
+      normalDoubleUsed =
+        true;
+
+
+      showItemNotice(
+
+        "ORANGE x2! รางวัลมอนสเตอร์นี้ x2",
+
+        "#ffd166"
+
+      );
+
+    }
+
+
+
+    inp.classList.add(
+      'ok'
+    );
+
+
+    if(normalDoubleUsed){
+
+      fb.textContent =
+        '✓ ถูกต้อง! BONUS x2';
+
+    }else{
+
+      fb.textContent =
+        '✓ ถูกต้อง! +1 คะแนน';
+
+    }
+
+
+    fb.className =
+      'ok';
+
+
     playCorrectSound();
     hint.textContent='';document.getElementById('q-tries').textContent='';
     setTimeout(()=>{
@@ -11577,7 +16057,35 @@ G.usedQ[lvKey].push(G.curQ);
   }
 
 },1000);
-  } else {
+} else {
+
+
+    // ==========================================
+    // ถ้ามี ORANGE x2
+    // แต่ตอบผิด -> passive หาย
+    // ==========================================
+
+if(
+  G.nextQuestionDouble > 0
+){
+
+  G.nextQuestionDouble =
+    Math.max(
+      0,
+      G.nextQuestionDouble - 1
+    );
+
+
+  showItemNotice(
+
+    "ORANGE ใช้ไป 1 Stack - เหลือ " +
+    G.nextQuestionDouble,
+
+    "#aaaaaa"
+
+  );
+
+}
     // =====================================================
 // FOREST MINOTAUR - WRONG ANSWER
 // ผิดครั้งเดียว -> เข้าโหมดโจมตี 10 วินาทีทันที
@@ -12039,6 +16547,14 @@ function startGame(){
   G.comboMsg=null;
   G.comboT=0;
 
+  G.hearts=[];
+  G.fruits=[];
+
+  G.nextQuestionDouble=0;
+
+  G.itemClock=
+    performance.now();
+
   G.usedQ = {
   easy: [],
   mid: [],
@@ -12060,13 +16576,51 @@ G.damageTexts=[];
   P.ft=0;
   P.facing=1;
 
-  G.coins=[];
+G.coins=[];
 
-  buildLevel();
-  updateHUD();
-  showStageBanner();
+buildLevel();
 
-  requestAnimationFrame(loop);
+// Forest ใหม่
+applyTiledForestCollision();
+applyTiledForestEntities();
+
+// ใช้ Collision จากแมพ Tiled
+applyTiledDungeonCollision();
+applyTiledDungeonMonsters();
+
+// ===============================
+// จุดเกิด Player จาก Forest Tiled
+// ===============================
+
+if(TILED_FOREST_PLAYER_START){
+
+  P.x =
+    TILED_FOREST_PLAYER_START.x;
+
+  P.y =
+    TILED_FOREST_PLAYER_START.y;
+
+  P.vx = 0;
+  P.vy = 0;
+
+}
+
+// ล้างเหรียญที่ buildLevel สร้างไว้ก่อน
+G.coins = [];
+
+// ด่านหลัก
+spawnForestCoins();
+
+// Dungeon
+spawnTiledDungeonCoins();
+
+spawnRandomFruits();
+
+updateHUD();
+showStageBanner();
+
+requestAnimationFrame(loop);
+
 }
 
 // ========== EDIT MODAL ==========
