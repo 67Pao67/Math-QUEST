@@ -1181,6 +1181,286 @@ position:relative;
 
 }
 
+/* =====================================================
+   PERK SELECT
+   ===================================================== */
+
+#perkScreen{
+
+  position:fixed;
+
+  inset:0;
+
+  display:none;
+
+  align-items:center;
+  justify-content:center;
+
+  background:
+    rgba(5,10,8,0.82);
+
+  z-index:99999;
+}
+
+
+#perkScreen.show{
+  display:flex;
+}
+
+
+#perkPanel{
+
+  width:min(740px,92vw);
+
+  padding:24px;
+
+  box-sizing:border-box;
+
+  background:#101712;
+
+  border:4px solid #f5c518;
+
+  box-shadow:
+    0 0 0 4px #111;
+
+  text-align:center;
+}
+
+
+#perkTitle{
+
+  color:#ffffff;
+
+  font-size:18px;
+
+  margin-bottom:8px;
+}
+
+
+#perkSub{
+
+  color:#f5c518;
+
+  font-size:9px;
+
+  margin-bottom:22px;
+}
+
+
+#perkCards{
+
+  display:flex;
+
+  justify-content:center;
+
+  gap:16px;
+}
+
+
+.perkCard{
+
+  width:190px;
+
+  min-height:245px;
+
+  box-sizing:border-box;
+
+  padding:14px 10px;
+
+  background:#1d2922;
+
+  border:3px solid #59685e;
+
+  display:flex;
+
+  flex-direction:column;
+
+  align-items:center;
+
+  cursor:pointer;
+
+  transition:
+    transform .12s,
+    border-color .12s;
+}
+
+
+.perkCard:hover{
+
+  transform:
+    translateY(-6px);
+
+  border-color:#f5c518;
+}
+
+
+.perkCard img{
+
+  width:90px;
+
+  height:90px;
+
+  object-fit:contain;
+
+  image-rendering:pixelated;
+
+  margin-bottom:12px;
+}
+
+
+.perkName{
+
+  color:#ffffff;
+
+  font-size:9px;
+
+  min-height:28px;
+}
+
+
+.perkDesc{
+
+  color:#a9cbb3;
+
+  font-size:7px;
+
+  line-height:1.7;
+
+  min-height:45px;
+
+  margin-top:8px;
+}
+
+
+.perkLevel{
+
+  color:#f5c518;
+
+  font-size:7px;
+
+  margin-top:6px;
+}
+
+
+.perkSelectBtn{
+
+  margin-top:auto;
+
+  width:105px;
+  height:34px;
+
+  border:2px solid #ffffff;
+
+  background:#f5c518;
+
+  color:#111;
+
+  font-weight:bold;
+
+  cursor:pointer;
+}
+
+
+/* มือถือ */
+@media(max-width:650px){
+
+  #perkPanel{
+    padding:12px;
+  }
+
+  #perkCards{
+    gap:6px;
+  }
+
+  .perkCard{
+    width:31%;
+    min-height:200px;
+    padding:8px 4px;
+  }
+
+  .perkCard img{
+    width:58px;
+    height:58px;
+  }
+
+  .perkName{
+    font-size:7px;
+  }
+
+  .perkDesc{
+    font-size:6px;
+  }
+
+  .perkSelectBtn{
+    width:90%;
+  }
+
+}
+
+/* =====================================================
+   CHARACTER PASSIVE INFO
+   ===================================================== */
+
+.char-info{
+  width:130px;
+  box-sizing:border-box;
+
+  margin-top:4px;
+  padding:7px 8px;
+
+  background:rgba(0,0,0,0.45);
+
+  border:2px solid rgba(255,255,255,0.25);
+
+  font-size:9px;
+  line-height:1.7;
+
+  color:#fff;
+}
+
+.char-stat{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.char-stat-value{
+  color:#f5c518;
+}
+
+.char-passive-name{
+  margin-top:4px;
+
+  padding-top:4px;
+
+  border-top:1px solid rgba(255,255,255,0.18);
+
+  text-align:center;
+
+  color:#3aff3a;
+  font-size:8px;
+}
+
+#confirmStats{
+
+  margin:8px auto 12px;
+
+  padding:8px 12px;
+
+  min-width:150px;
+
+  background:rgba(0,0,0,0.45);
+
+  border:2px solid #555;
+
+  color:#f5c518;
+
+  font-size:10px;
+  line-height:1.8;
+
+  text-align:center;
+}
+
 </style>
 </head>
 <body>
@@ -1270,7 +1550,7 @@ position:relative;
 
             <img
                 id="menuLogo"
-                src="mushroom.png"
+                src="Cat3.png"
             >
 
             <div class="logoText">
@@ -1297,7 +1577,7 @@ position:relative;
   <div class="char-header">
 
     <img
-      src="Mushroom2.png"
+      src="Mouse.png"
       class="char-header-icon">
 
     <span>
@@ -1309,7 +1589,7 @@ position:relative;
   <div class="char-strip"></div>
 
   <img
-    src="mushroom.png"
+    src="Cat3.png"
     class="char-bg-mushroom">
 
   <div class="menu-panel">
@@ -1329,85 +1609,196 @@ position:relative;
       width:100%;
       ">
 
-        <!-- BOY -->
-        <div
-        id="pick-male"
-        class="charCard"
+<!-- CHARACTER CARDS -->
+<div
+style="
+display:flex;
+justify-content:center;
+align-items:flex-start;
+gap:90px;
+width:100%;
+">
+
+  <!-- ===================== -->
+  <!-- BOY -->
+  <!-- ===================== -->
+
+  <div
+    id="pick-male"
+    class="charCard"
+    style="
+    width:150px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+    "
+  >
+
+    <!-- ช่องรูป -->
+    <div
+      style="
+      width:130px;
+      height:120px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      "
+    >
+
+      <img
+        src="Male.png"
         style="
-        display:flex;
-        flex-direction:column;
-        align-items:center;
-        ">
+        width:110px;
+        height:110px;
+        object-fit:contain;
+        image-rendering:pixelated;
+        "
+      >
 
-          <img
-          src="Male.png"
-          style="
-          width:120px;
-          height:120px;
-          image-rendering:pixelated;
-          ">
+    </div>
 
-          <div
-          style="
-          margin-top:8px;
-          color:white;
-          ">
-            BOY
-          </div>
+    <div
+      style="
+      height:24px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:white;
+      "
+    >
+      BOY
+    </div>
 
-          <button
-          onclick="openCharacterConfirm('male')"
-          style="
-          margin-top:10px;
-          width:90px;
-          height:36px;
-          cursor:pointer;
-          font-weight:bold;
-          ">
-            PICK
-          </button>
+    <!-- BOY PASSIVE INFO -->
+<div class="char-info">
 
-        </div>
+  <div class="char-stat">
+    <span>HP</span>
+    <span class="char-stat-value">
+      120
+    </span>
+  </div>
 
-        <!-- NAOKO -->
-        <div
-        id="pick-female"
-        class="charCard"
+  <div class="char-stat">
+    <span>SPEED</span>
+    <span class="char-stat-value">
+      100%
+    </span>
+  </div>
+
+  <div class="char-passive-name">
+    HIGH HP
+  </div>
+
+</div>
+
+    <button
+      onclick="openCharacterConfirm('male')"
+      style="
+      margin-top:8px;
+      width:90px;
+      height:36px;
+      cursor:pointer;
+      font-weight:bold;
+      "
+    >
+      PICK
+    </button>
+
+  </div>
+
+
+  <!-- ===================== -->
+  <!-- CAT -->
+  <!-- ===================== -->
+
+  <div
+    id="pick-female"
+    class="charCard"
+    style="
+    width:150px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+    "
+  >
+
+    <!-- ช่องรูป -->
+    <div
+      style="
+      width:130px;
+      height:120px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      "
+    >
+
+      <img
+        src="Cat.png"
         style="
-        display:flex;
-        flex-direction:column;
-        align-items:center;
-        ">
+        width:82px;
+        height:82px;
+        object-fit:contain;
+        image-rendering:pixelated;
+        "
+      >
 
-          <img
-          src="Female.png"
-          style="
-          width:120px;
-          height:120px;
-          image-rendering:pixelated;
-          ">
+    </div>
 
-          <div
-          style="
-          margin-top:8px;
-          color:white;
-          ">
-            NAOKO
-          </div>
+    <div
+      style="
+      height:24px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:white;
+      "
+    >
+      CAT
+    </div>
 
-          <button
-          onclick="openCharacterConfirm('female')"
-          style="
-          margin-top:10px;
-          width:90px;
-          height:36px;
-          cursor:pointer;
-          font-weight:bold;
-          ">
-            PICK
-          </button>
+    <!-- CAT PASSIVE INFO -->
+<div class="char-info">
 
-        </div>
+  <div class="char-stat">
+    <span>HP</span>
+    <span class="char-stat-value">
+      80
+    </span>
+  </div>
+
+  <div class="char-stat">
+    <span>SPEED</span>
+    <span class="char-stat-value">
+      110%
+    </span>
+  </div>
+
+  <div class="char-passive-name">
+    FAST RUNNER
+  </div>
+
+</div>
+
+    <button
+      onclick="openCharacterConfirm('female')"
+      style="
+      margin-top:8px;
+      width:90px;
+      height:36px;
+      cursor:pointer;
+      font-weight:bold;
+      "
+    >
+      PICK
+    </button>
+
+  </div>
+
+</div>
 
       </div>
 
@@ -1432,6 +1823,9 @@ position:relative;
         <div id="confirmName">
             ผู้ชาย
         </div>
+
+        <div id="confirmStats">
+</div>
 
         <div class="confirmBtns">
 
@@ -1924,6 +2318,35 @@ const dungeonPillar = new Image();
 dungeonPillar.src = "pillar_side.png";
 
 // =====================================================
+// SUNNYLAND BACKGROUND
+// =====================================================
+
+const sunnyBackImg = new Image();
+sunnyBackImg.src =
+  "Sunny-land-files/Sunny-land-files/Assets/environment/Background/back.png";
+
+sunnyBackImg.onload = ()=>{
+  console.log("☀️ SUNNY BACK OK");
+};
+
+sunnyBackImg.onerror = ()=>{
+  console.error("❌ SUNNY BACK LOAD FAIL");
+};
+
+
+const sunnyMiddleImg = new Image();
+sunnyMiddleImg.src =
+  "Sunny-land-files/Sunny-land-files/Assets/environment/Background/middle.png";
+
+sunnyMiddleImg.onload = ()=>{
+  console.log("☀️ SUNNY MIDDLE OK");
+};
+
+sunnyMiddleImg.onerror = ()=>{
+  console.error("❌ SUNNY MIDDLE LOAD FAIL");
+};
+
+// =====================================================
 // DUNGEON PROPS
 // =====================================================
 
@@ -2221,17 +2644,9 @@ window.addEventListener(
   'resize',
   ()=>{
 
+    // ปรับเฉพาะขนาด Canvas
+    // ห้ามสร้าง Level / Monster ใหม่
     resizeCanvas();
-
-    if(G.running){
-
-      buildLevel();
-
-      // ใส่ Collision จาก Tiled กลับเข้าไป
-      applyTiledForestCollision();
-      applyTiledDungeonCollision();
-
-    }
 
   }
 );
@@ -2252,7 +2667,9 @@ function pxText(text,x,y,size,color){
 const G={
   running:false,
   heroType:"male",
-  score:0,hp:100,
+  score:0,
+hp:100,
+maxHp:100,
   camX:0,killed:0,inQ:false,
   curMonster:null,curQ:null,wrongCnt:0,
 
@@ -2275,11 +2692,512 @@ const G={
   dungeonProps:[],
   hearts:[],
   fruits:[],
-  nextQuestionDouble:0,
-  pickupBannerT:null,
+nextQuestionDouble:0,
+pickupBannerT:null,
 
-  bossKilled:false,
+
+// =====================================================
+// PERK SYSTEM
+// =====================================================
+
+// จำนวนคำถามที่ตอบถูก
+perkQuestionCount:0,
+
+// จำนวน Perk ที่เลือกไปแล้ว
+perkChoicesTaken:0,
+
+// ตอนกำลังเลือกการ์ด
+perkChoosing:false,
+
+
+// จำนวน Lv. ของแต่ละ Perk
+perks:{
+  wing:0,
+  heart:0,
+  magnet:0,
+  star:0,
+  shield:0,
+  goldHeart:0
+},
+
+
+// ค่าที่ Perk นำไปใช้จริง
+jumpMul:1,
+
+damageReduction:0,
+
+coinMagnetRadius:0,
+
+correctScoreBonus:0,
+
+shieldCharges:0,
+
+killHeal:0,
+
+
+bossKilled:false,
 };
+
+// =====================================================
+// PERK CARDS
+// =====================================================
+
+const PERK_CARDS = [
+
+  // =====================================
+  // WING
+  // =====================================
+  {
+    id:"wing",
+
+    name:"LIGHT WING",
+
+    image:"Wing.png",
+
+    desc:"JUMP +8%",
+
+    apply(){
+
+      G.perks.wing++;
+
+      G.jumpMul =
+        1 +
+        G.perks.wing * 0.08;
+
+    }
+  },
+
+
+  // =====================================
+  // HEART
+  // =====================================
+  {
+    id:"heart",
+
+    name:"STRONG HEART",
+
+    image:"Heart2.png",
+
+    desc:"DAMAGE -2",
+
+    apply(){
+
+      G.perks.heart++;
+
+      G.damageReduction =
+        G.perks.heart * 2;
+
+    }
+  },
+
+
+  // =====================================
+  // MAGNET
+  // =====================================
+  {
+    id:"magnet",
+
+    name:"COIN MAGNET",
+
+    image:"Magnet.png",
+
+    desc:"COIN PICKUP RANGE +50",
+
+    apply(){
+
+      G.perks.magnet++;
+
+      G.coinMagnetRadius =
+        G.perks.magnet * 50;
+
+    }
+  },
+
+
+  // =====================================
+  // STAR
+  // =====================================
+  {
+    id:"star",
+
+    name:"LUCKY STAR",
+
+    image:"Star.png",
+
+    desc:"+0.25 SCORE / CORRECT",
+
+    apply(){
+
+      G.perks.star++;
+
+      G.correctScoreBonus =
+        G.perks.star * 0.25;
+
+    }
+  },
+
+
+  // =====================================
+  // SHIELD
+  // =====================================
+  {
+    id:"shield",
+
+    name:"SHIELD",
+
+    image:"Shield.png",
+
+    desc:"BLOCK NEXT DAMAGE",
+
+    apply(){
+
+      G.perks.shield++;
+
+      // แต่ละครั้งที่เลือก
+      // ได้ Shield เพิ่ม 1 Charge
+      G.shieldCharges++;
+
+    }
+  },
+
+
+  // =====================================
+  // GOLD HEART
+  // =====================================
+  {
+    id:"goldHeart",
+
+    name:"GOLD HEART",
+
+    image:"GoldHeart.png",
+
+    desc:"KILL = HP +4",
+
+    apply(){
+
+      G.perks.goldHeart++;
+
+      G.killHeal =
+        G.perks.goldHeart * 4;
+
+    }
+  }
+
+];
+
+// =====================================================
+// สุ่ม Perk 3 ใบ ไม่ซ้ำกันในรอบเดียว
+// =====================================================
+
+function getRandomPerkCards(){
+
+  const pool =
+    [...PERK_CARDS];
+
+
+  // Fisher-Yates Shuffle
+  for(
+    let i =
+      pool.length - 1;
+
+    i > 0;
+
+    i--
+  ){
+
+    const j =
+      Math.floor(
+        Math.random() *
+        (i + 1)
+      );
+
+
+    [
+      pool[i],
+      pool[j]
+    ]
+    =
+    [
+      pool[j],
+      pool[i]
+    ];
+
+  }
+
+
+  return pool.slice(
+    0,
+    3
+  );
+
+}
+
+// =====================================================
+// เปิดหน้าเลือก Perk
+// =====================================================
+
+function openPerkChoice(){
+
+  if(G.perkChoosing){
+    return;
+  }
+
+
+  G.perkChoosing =
+    true;
+
+
+  // หยุดเกมระหว่างเลือก
+  G.inQ =
+    true;
+
+
+  const screen =
+    document.getElementById(
+      "perkScreen"
+    );
+
+
+  const container =
+    document.getElementById(
+      "perkCards"
+    );
+
+
+  container.innerHTML =
+    "";
+
+
+  const choices =
+    getRandomPerkCards();
+
+
+  for(
+    const perk
+    of choices
+  ){
+
+    const currentLv =
+      G.perks[
+        perk.id
+      ] || 0;
+
+
+    const card =
+      document.createElement(
+        "div"
+      );
+
+
+    card.className =
+      "perkCard";
+
+
+    card.innerHTML = `
+
+      <img
+        src="${perk.image}"
+      >
+
+      <div class="perkName">
+        ${perk.name}
+      </div>
+
+      <div class="perkDesc">
+        ${perk.desc}
+      </div>
+
+      <div class="perkLevel">
+        CURRENT LV.${currentLv}
+      </div>
+
+      <button
+        class="perkSelectBtn"
+      >
+        SELECT
+      </button>
+
+    `;
+
+
+    card.onclick =
+      () => {
+
+        choosePerk(
+          perk.id
+        );
+
+      };
+
+
+    container.appendChild(
+      card
+    );
+
+  }
+
+
+  screen.classList.add(
+    "show"
+  );
+
+}
+
+// =====================================================
+// เลือก Perk
+// =====================================================
+
+function choosePerk(
+  perkId
+){
+
+  if(!G.perkChoosing){
+    return;
+  }
+
+
+  const perk =
+    PERK_CARDS.find(
+      p =>
+        p.id === perkId
+    );
+
+
+  if(!perk){
+    return;
+  }
+
+
+  // เปิด Effect
+  perk.apply();
+
+
+  G.perkChoicesTaken++;
+
+
+  G.perkChoosing =
+    false;
+
+
+  document
+    .getElementById(
+      "perkScreen"
+    )
+    .classList
+    .remove(
+      "show"
+    );
+
+
+  showItemNotice(
+
+    perk.name +
+    "  LV." +
+    G.perks[
+      perk.id
+    ],
+
+    "#f5c518"
+
+  );
+
+
+  // ถ้าข้างหลังยังมีหน้าคำถาม
+  // ให้เกมยัง pause อยู่
+  const questionOpen =
+    document
+      .getElementById(
+        "q-popup"
+      )
+      .classList
+      .contains(
+        "show"
+      );
+
+
+  const bossOpen =
+    document
+      .getElementById(
+        "boss-screen"
+      )
+      .classList
+      .contains(
+        "show"
+      );
+
+
+  G.inQ =
+    questionOpen ||
+    bossOpen;
+
+}
+
+// =====================================================
+// PERK QUESTION COUNTER
+// ทุก 10 ข้อที่ตอบถูก = เลือก 1 Perk
+// =====================================================
+
+function registerCorrectQuestion(){
+
+  G.perkQuestionCount++;
+
+
+  // =====================================
+  // STAR PERK
+  // ตอบถูกได้คะแนนโบนัส
+  // =====================================
+
+  if(
+    G.correctScoreBonus > 0
+  ){
+
+    G.score +=
+      G.correctScoreBonus;
+
+    updateHUD();
+
+  }
+
+
+  console.log(
+
+    "⭐ PERK PROGRESS:",
+
+    G.perkQuestionCount %
+      5,
+
+    "/ 10"
+
+  );
+
+
+  // ยังไม่ครบ 10
+  if(
+    G.perkQuestionCount %
+      5 !== 0
+  ){
+
+    return;
+
+  }
+
+
+  // ครบ 10!
+  // รอนิดหนึ่ง ให้ feedback คำตอบขึ้นก่อน
+  setTimeout(
+    ()=>{
+
+      if(G.running){
+
+        openPerkChoice();
+
+      }
+
+    },
+    450
+  );
+
+}
 
 const P={
   x:100,
@@ -2300,9 +3218,19 @@ const P={
   hurtT:0,
   stunT:0,
 
-  // SPEED ITEM
-  speedMul:1,
-  speedBoostMs:0,
+// =====================================
+// CHARACTER PASSIVE SPEED
+// BOY = 1.00
+// CAT = 1.10
+// =====================================
+
+characterSpeedMul:1,
+
+
+// SPEED ITEM
+// ใช้สำหรับพริกแดง
+speedMul:1,
+speedBoostMs:0,
 
   // POISON
   poisonTicksLeft:0,
@@ -2326,18 +3254,29 @@ heroJump.src = "male_hero_free/individual_sheets/male_hero-jump.png";
 const heroFall = new Image();
 heroFall.src = "male_hero_free/individual_sheets/male_hero-fall.png";
 
-// FEMALE HERO
+// =====================================================
+// CAT HERO
+// ยังใช้ตัวแปร female ชั่วคราว เพื่อไม่ต้องรื้อระบบเก่า
+// =====================================================
+
 const femaleIdle = new Image();
-femaleIdle.src = "Knight_player_1.4/Knight_player_1.4/Knight_player/Idle_KG_2.png";
+femaleIdle.src =
+  "FREE_Cat 2D Pixel Art/FREE_Cat 2D Pixel Art/Sprites/IDLE.png";
+
 
 const femaleRun = new Image();
-femaleRun.src ="Knight_player_1.4/Knight_player_1.4/Knight_player/Walking_KG_1.png";
+femaleRun.src =
+  "FREE_Cat 2D Pixel Art/FREE_Cat 2D Pixel Art/Sprites/RUN.png";
+
 
 const femaleJump = new Image();
-femaleJump.src = "Knight_player_1.4/Knight_player_1.4/Knight_player/Jump_KG_1.png";
+femaleJump.src =
+  "FREE_Cat 2D Pixel Art/FREE_Cat 2D Pixel Art/Sprites/JUMP.png";
+
 
 const femaleFall = new Image();
-femaleFall.src = "Knight_player_1.4/Knight_player_1.4/Knight_player/Fall_KG_1.png";
+femaleFall.src =
+  "FREE_Cat 2D Pixel Art/FREE_Cat 2D Pixel Art/Sprites/RUNNING JUMP.png";
 
 window.addEventListener("load",()=>{
 
@@ -2358,7 +3297,7 @@ window.addEventListener("load",()=>{
 
     selectedCharacter="female";
 
-    femaleBtn.style.borderColor="#ff66cc";
+    femaleBtn.style.borderColor="#ffb347";
     maleBtn.style.borderColor="#555";
   };
 
@@ -2500,10 +3439,16 @@ function drawDecor(){
 }
 // ========== GAME CONSTANTS ==========
 
-const LEVEL_W = 10000;
-const WORLD_W = 22000;
-const DUNGEON_START = 12000;
-const DUNGEON_END = WORLD_W;
+const SUNNY_SCALE = 2;
+
+// Sunnyland = 700 tiles × 16px × 2
+const LEVEL_W = 22400;
+const WORLD_W = 22400;
+
+// ปิดเขต Dungeon เก่า
+const DUNGEON_START = 999999;
+const DUNGEON_END = 999999;
+
 const GRAVITY = 0.52;
 const JUMP_F = -13;
 const SPD = 3.2;
@@ -3064,12 +4009,17 @@ G.platforms.push({
 // TILED FOREST COLLISION
 // =====================================================
 
+// =====================================================
+// SUNNYLAND COLLISION
+// รองรับ Rectangle + Polygon จาก Tiled
+// =====================================================
+
 function applyTiledForestCollision(){
 
   if(!TILED_FOREST){
 
     console.warn(
-      "⚠️ Tiled Forest ยังไม่โหลด"
+      "⚠️ Sunnyland ยังไม่โหลด"
     );
 
     return;
@@ -3088,33 +4038,188 @@ function applyTiledForestCollision(){
   ){
 
     console.error(
-      "❌ ไม่เจอ Forest Collision layer"
+      "❌ ไม่เจอ Sunnyland Collision layer"
     );
 
     return;
   }
 
 
-  // ===================================================
-  // ลบ Collision Forest เก่า
-  // เก็บ Dungeon ไว้
-  // ===================================================
+  // ล้าง Collision เก่าทั้งหมด
+  G.platforms = [];
 
-  G.platforms =
-    G.platforms.filter(
-      pl =>
-        pl.x >= DUNGEON_START
+  // เก็บ Polygon พื้นเอียงแยกต่างหาก
+  G.sunnyPolygons = [];
+  G.sunnyCeilings = [];
+
+
+  for(const obj of layer.objects){
+
+    const name =
+      (obj.name || "")
+      .trim()
+      .toLowerCase();
+
+
+    // =============================================
+    // ชนิด Collision
+    // =============================================
+
+    let type = "g";
+
+    if(name === "ceiling"){
+      type = "dg-ceiling";
+    }
+    else if(name === "wall"){
+      type = "dg-wall";
+    }
+
+    // =============================================
+// POLYGON CEILING
+// ด้านบนยืนได้ + ด้านล่างชนหัวได้
+// =============================================
+
+if(
+  Array.isArray(obj.polygon) &&
+  obj.polygon.length >= 2 &&
+  type === "dg-ceiling"
+){
+
+  const points =
+    obj.polygon.map(
+      p => ({
+
+        x:
+          (obj.x + p.x) *
+          SUNNY_SCALE,
+
+        y:
+          (obj.y + p.y) *
+          SUNNY_SCALE
+
+      })
     );
 
 
-  // ===================================================
-  // ใส่ Collision จาก Tiled
-  //
-  // Forest ใช้ 32x32 จริง
-  // ไม่ต้อง x2 แบบ Dungeon
-  // ===================================================
+  // ด้านบน = ใช้เป็นพื้น
+  G.sunnyPolygons.push({
+    points:points
+  });
 
-  for(const obj of layer.objects){
+
+  // ด้านล่าง = ใช้เป็นเพดาน
+  G.sunnyCeilings.push({
+    points:points
+  });
+
+
+  continue;
+}
+
+
+    // =============================================
+    // POLYGON
+    // พื้นธรรมดา / slope
+    // =============================================
+
+    if(
+      Array.isArray(obj.polygon) &&
+      obj.polygon.length >= 2 &&
+      type === "g"
+    ){
+
+      const points =
+        obj.polygon.map(
+          p => ({
+            x:
+              (obj.x + p.x) *
+              SUNNY_SCALE,
+
+            y:
+              (obj.y + p.y) *
+              SUNNY_SCALE
+          })
+        );
+
+
+      G.sunnyPolygons.push({
+        points:points
+      });
+
+
+      continue;
+    }
+
+
+    // =============================================
+    // WALL / CEILING ที่เป็น Polygon
+    // ใช้ bounding box ของ polygon
+    // =============================================
+
+    if(
+      Array.isArray(obj.polygon) &&
+      obj.polygon.length >= 2
+    ){
+
+      const points =
+        obj.polygon.map(
+          p => ({
+            x:
+              (obj.x + p.x) *
+              SUNNY_SCALE,
+
+            y:
+              (obj.y + p.y) *
+              SUNNY_SCALE
+          })
+        );
+
+
+      const xs =
+        points.map(p => p.x);
+
+      const ys =
+        points.map(p => p.y);
+
+
+      const minX =
+        Math.min(...xs);
+
+      const maxX =
+        Math.max(...xs);
+
+      const minY =
+        Math.min(...ys);
+
+      const maxY =
+        Math.max(...ys);
+
+
+      G.platforms.push({
+
+        x:minX,
+        y:minY,
+
+        w:
+          maxX - minX,
+
+        h:
+          maxY - minY,
+
+        t:type,
+
+        noDraw:true
+
+      });
+
+
+      continue;
+    }
+
+
+    // =============================================
+    // RECTANGLE แบบเดิม
+    // =============================================
 
     if(
       !obj.width ||
@@ -3124,54 +4229,27 @@ function applyTiledForestCollision(){
     }
 
 
-    const name =
-      (obj.name || "")
-      .trim()
-      .toLowerCase();
-
-
-    // ค่าเริ่มต้น = พื้น / platform
-    let type = "g";
-
-
-    // ถ้าตั้งชื่อ Ceiling ใน Tiled
-    if(name === "ceiling"){
-
-      type = "dg-ceiling";
-
-    }
-
-
-    // ถ้าตั้งชื่อ Wall ใน Tiled
-    else if(name === "wall"){
-
-      type = "dg-wall";
-
-    }
-
-
     G.platforms.push({
 
       x:
-        obj.x,
+        obj.x *
+        SUNNY_SCALE,
 
       y:
-        obj.y,
+        obj.y *
+        SUNNY_SCALE,
 
       w:
-        obj.width,
+        obj.width *
+        SUNNY_SCALE,
 
       h:
-        obj.height,
+        obj.height *
+        SUNNY_SCALE,
 
-      t:
-        type,
+      t:type,
 
-      noDraw:
-        true,
-
-      tiledForest:
-        true
+      noDraw:true
 
     });
 
@@ -3179,10 +4257,255 @@ function applyTiledForestCollision(){
 
 
   console.log(
-    "🌲 FOREST COLLISION:",
-    layer.objects.length,
-    "objects"
+    "☀️ SUNNY COLLISION OBJECTS:",
+    layer.objects.length
   );
+
+
+  console.log(
+    "📐 SUNNY POLYGON GROUND:",
+    G.sunnyPolygons.length
+  );
+
+
+  console.log(
+    "🧱 SUNNY RECT/WALL/CEILING:",
+    G.platforms.length
+  );
+
+}
+
+// =====================================================
+// หา Y ของพื้น Polygon ณ ตำแหน่ง X
+// =====================================================
+
+function getSunnyPolygonGroundY(
+  polygon,
+  worldX
+){
+
+  if(
+    !polygon ||
+    !Array.isArray(polygon.points) ||
+    polygon.points.length < 2
+  ){
+    return null;
+  }
+
+
+  const points =
+    polygon.points;
+
+
+  let bestY =
+    null;
+
+
+  for(
+    let i = 0;
+    i < points.length;
+    i++
+  ){
+
+    const a =
+      points[i];
+
+    const b =
+      points[
+        (i + 1) %
+        points.length
+      ];
+
+
+    const dx =
+      b.x - a.x;
+
+
+    // เส้นตั้งไม่ใช่พื้น
+    if(
+      Math.abs(dx) < 0.001
+    ){
+      continue;
+    }
+
+
+    const minX =
+      Math.min(
+        a.x,
+        b.x
+      );
+
+    const maxX =
+      Math.max(
+        a.x,
+        b.x
+      );
+
+
+    if(
+      worldX < minX ||
+      worldX > maxX
+    ){
+      continue;
+    }
+
+
+    const t =
+      (
+        worldX -
+        a.x
+      )
+      /
+      dx;
+
+
+    if(
+      t < 0 ||
+      t > 1
+    ){
+      continue;
+    }
+
+
+    const y =
+      a.y +
+      (
+        b.y -
+        a.y
+      ) *
+      t;
+
+
+    // Polygon ปิดรูปอยู่
+    // เราเลือกเส้นบนสุดเป็นพื้น
+    if(
+      bestY === null ||
+      y < bestY
+    ){
+      bestY = y;
+    }
+
+  }
+
+
+  return bestY;
+
+}
+
+// =====================================================
+// หา Y ด้านล่างของ Ceiling Polygon
+// ณ ตำแหน่ง X
+// =====================================================
+
+function getSunnyPolygonCeilingY(
+  polygon,
+  worldX
+){
+
+  if(
+    !polygon ||
+    !Array.isArray(polygon.points) ||
+    polygon.points.length < 2
+  ){
+    return null;
+  }
+
+
+  const points =
+    polygon.points;
+
+
+  let bestY = null;
+
+
+  for(
+    let i = 0;
+    i < points.length;
+    i++
+  ){
+
+    const a =
+      points[i];
+
+    const b =
+      points[
+        (i + 1) %
+        points.length
+      ];
+
+
+    const dx =
+      b.x - a.x;
+
+
+    // ไม่สนเส้นตั้ง
+    if(
+      Math.abs(dx) < 0.001
+    ){
+      continue;
+    }
+
+
+    const minX =
+      Math.min(
+        a.x,
+        b.x
+      );
+
+    const maxX =
+      Math.max(
+        a.x,
+        b.x
+      );
+
+
+    if(
+      worldX < minX ||
+      worldX > maxX
+    ){
+      continue;
+    }
+
+
+    const t =
+      (
+        worldX -
+        a.x
+      )
+      /
+      dx;
+
+
+    if(
+      t < 0 ||
+      t > 1
+    ){
+      continue;
+    }
+
+
+    const y =
+      a.y +
+      (
+        b.y -
+        a.y
+      ) *
+      t;
+
+
+    // ต่างจาก Ground:
+    // Ceiling ต้องเลือกเส้นล่างสุด
+    if(
+      bestY === null ||
+      y > bestY
+    ){
+      bestY = y;
+    }
+
+  }
+
+
+  return bestY;
 
 }
 
@@ -3250,11 +4573,11 @@ function drawTiledForestLayer(layerName){
     TILED_FOREST.height;
 
 
-  const cellW =
-    TILED_FOREST.tilewidth;
+const cellW =
+  TILED_FOREST.tilewidth * SUNNY_SCALE;
 
-  const cellH =
-    TILED_FOREST.tileheight;
+const cellH =
+  TILED_FOREST.tileheight * SUNNY_SCALE;
 
 
   for(
@@ -3291,10 +4614,13 @@ function drawTiledForestLayer(layerName){
       const flipV =
         (rawGid & 0x40000000) !== 0;
 
+      const flipD =
+        (rawGid & 0x20000000) !== 0;
+
 
       // เอา flag ออกจาก GID
       const gid =
-        rawGid & 0x1fffffff;
+        rawGid & 0x0fffffff;
 
 
       const ts =
@@ -3337,11 +4663,11 @@ function drawTiledForestLayer(layerName){
 
 
       // ขนาดจริงของ tile
-      const drawW =
-        ts.tileWidth;
+const drawW =
+  ts.tileWidth * SUNNY_SCALE;
 
-      const drawH =
-        ts.tileHeight;
+const drawH =
+  ts.tileHeight * SUNNY_SCALE;
 
 
       // Forest เริ่มที่ x = 0
@@ -3386,61 +4712,119 @@ function drawTiledForestLayer(layerName){
         false;
 
 
-      // รองรับ Flip ซ้าย/ขวา และบน/ล่าง
-      if(flipH || flipV){
+// =====================================================
+// TILED FLIP / ROTATION
+// รองรับ H + V + Diagonal
+// =====================================================
 
-        ctx.translate(
-          screenX +
-          drawW / 2,
-
-          screenY +
-          drawH / 2
-        );
-
-
-        ctx.scale(
-          flipH ? -1 : 1,
-          flipV ? -1 : 1
-        );
+ctx.translate(
+  screenX + drawW / 2,
+  screenY + drawH / 2
+);
 
 
-        ctx.drawImage(
-          ts.image,
+let a = 1;
+let b = 0;
+let c = 0;
+let d = 1;
 
-          sourceX,
-          sourceY,
 
-          ts.tileWidth,
-          ts.tileHeight,
+// ===============================================
+// ไม่มี diagonal
+// flip ปกติ
+// ===============================================
 
-          -drawW / 2,
-          -drawH / 2,
+if(!flipD){
 
-          drawW,
-          drawH
-        );
+  a =
+    flipH ? -1 : 1;
 
-      }
-      else{
+  d =
+    flipV ? -1 : 1;
 
-        ctx.drawImage(
-          ts.image,
+}
 
-          sourceX,
-          sourceY,
 
-          ts.tileWidth,
-          ts.tileHeight,
+// ===============================================
+// มี diagonal
+// Tiled ใช้อันนี้ในการหมุน 90 องศา
+// ===============================================
 
-          screenX,
-          screenY,
+else{
 
-          drawW,
-          drawH
-        );
+  if(
+    !flipH &&
+    !flipV
+  ){
 
-      }
+    a = 0;
+    b = -1;
+    c = -1;
+    d = 0;
 
+  }
+
+  else if(
+    flipH &&
+    !flipV
+  ){
+
+    a = 0;
+    b = -1;
+    c = 1;
+    d = 0;
+
+  }
+
+  else if(
+    !flipH &&
+    flipV
+  ){
+
+    a = 0;
+    b = 1;
+    c = -1;
+    d = 0;
+
+  }
+
+  else{
+
+    a = 0;
+    b = 1;
+    c = 1;
+    d = 0;
+
+  }
+
+}
+
+
+ctx.transform(
+  a,
+  b,
+  c,
+  d,
+  0,
+  0
+);
+
+
+ctx.drawImage(
+  ts.image,
+
+  sourceX,
+  sourceY,
+
+  ts.tileWidth,
+  ts.tileHeight,
+
+  -drawW / 2,
+  -drawH / 2,
+
+  drawW,
+  drawH
+);
 
       ctx.restore();
 
@@ -3513,10 +4897,15 @@ function addTiledForestMonster(
 
     type:type,
 
-    lv:lv,
-    hp:lv,
+lv:lv,
+hp:lv,
 
-    dir:1,
+// จำนวนคำถามของมอนตัวนี้
+quizCorrect:0,
+quizNeed:lv,
+quizFinished:false,
+
+dir:1,
 
     dt:0,
     ft:0,
@@ -3587,22 +4976,14 @@ function applyTiledForestEntities(){
   // แต่เก็บ Dungeon monsters
   // ===================================================
 
-  G.monsters =
-    G.monsters.filter(
-      m =>
-        m.x >= DUNGEON_START
-    );
+G.monsters = [];
 
 
   // ===================================================
   // ลบ Portal Forest ตัวเก่า
   // ===================================================
 
-  G.portals =
-    G.portals.filter(
-      p =>
-        p.x >= DUNGEON_START
-    );
+G.portals = [];
 
 
   // ===================================================
@@ -3618,11 +4999,11 @@ function applyTiledForestEntities(){
 
 
     // Forest ใช้ scale 1:1
-    const footX =
-      obj.x;
+const footX =
+  obj.x * SUNNY_SCALE;
 
-    const footY =
-      obj.y;
+const footY =
+  obj.y * SUNNY_SCALE;
 
 
     // ===============================================
@@ -3791,6 +5172,190 @@ function applyTiledForestEntities(){
       p =>
         p.x < DUNGEON_START
     ).length
+  );
+
+}
+
+// =====================================================
+// SUNNYLAND COINS FROM TILED
+// Point Name = Coin
+// =====================================================
+
+function applyTiledSunnyCoins(){
+
+  if(!TILED_FOREST){
+    return;
+  }
+
+
+  const layer =
+    TILED_FOREST.layers.find(
+      l => l.name === "Entities"
+    );
+
+
+  if(
+    !layer ||
+    layer.type !== "objectgroup"
+  ){
+
+    console.error(
+      "❌ ไม่เจอ Entities สำหรับ Coin"
+    );
+
+    return;
+  }
+
+
+  // ล้างเหรียญเก่า
+  G.coins = [];
+
+
+  let coinCount = 0;
+
+
+  for(const obj of layer.objects){
+
+    const kind =
+      (obj.name || "")
+      .trim()
+      .toLowerCase();
+
+
+    if(kind !== "coin"){
+      continue;
+    }
+
+
+    // Point ใน Tiled = จุดกึ่งกลางเหรียญ
+    const centerX =
+      obj.x * SUNNY_SCALE;
+
+    const centerY =
+      obj.y * SUNNY_SCALE;
+
+
+    // ระบบเหรียญเดิมใช้ x/y เป็นมุมซ้ายบน
+    addTiledDungeonCoin(
+
+      centerX - 8,
+      centerY - 8
+
+    );
+
+
+    coinCount++;
+
+  }
+
+
+  console.log(
+    "🪙 SUNNY COINS:",
+    coinCount
+  );
+
+}
+
+// =====================================================
+// SUNNYLAND RANDOM FRUITS FROM TILED
+//
+// Tiled Point Name = FruitSpawn
+//
+// ตำแหน่งคงที่
+// แต่ชนิดผลไม้สุ่มใหม่ทุกครั้งที่เริ่มเกม
+// =====================================================
+
+function applyTiledSunnyFruits(){
+
+  if(!TILED_FOREST){
+    return;
+  }
+
+
+  const layer =
+    TILED_FOREST.layers.find(
+      l => l.name === "Entities"
+    );
+
+
+  if(
+    !layer ||
+    layer.type !== "objectgroup"
+  ){
+
+    console.error(
+      "❌ ไม่เจอ Entities สำหรับ Fruit"
+    );
+
+    return;
+  }
+
+
+  // ล้างผลไม้จากรอบก่อน
+  G.fruits = [];
+
+
+  let fruitCount = 0;
+
+
+  for(const obj of layer.objects){
+
+    const kind =
+      (obj.name || "")
+      .trim()
+      .toLowerCase();
+
+
+    if(kind !== "fruitspawn"){
+      continue;
+    }
+
+
+    // ===============================================
+    // สุ่มชนิดผลไม้
+    // ===============================================
+
+    const randomType =
+      FRUIT_KEYS[
+        Math.floor(
+          Math.random() *
+          FRUIT_KEYS.length
+        )
+      ];
+
+
+    // ===============================================
+    // Tiled 16px -> เกม x2
+    // Point = กลางผลไม้
+    // ===============================================
+
+    const centerX =
+      obj.x *
+      SUNNY_SCALE;
+
+    const centerY =
+      obj.y *
+      SUNNY_SCALE;
+
+
+    addFruit(
+
+      centerX - 8,
+      centerY - 8,
+
+      randomType
+
+    );
+
+
+    fruitCount++;
+
+  }
+
+
+  console.log(
+    "🍉 SUNNY RANDOM FRUITS:",
+    fruitCount
   );
 
 }
@@ -4187,7 +5752,7 @@ async function loadTiledForest(){
 
     const response =
       await fetch(
-        "maps/forest.tmj"
+        "maps/sunnyland.tmj"
       );
 
     if(!response.ok){
@@ -8707,7 +10272,7 @@ addDungeonProp(
   35
 );
 
-spawnRandomFruits();
+// spawnRandomFruits();
 
 // แตงโม固定ในดันเจี้ยนชั้นสอง
 addFruit(
@@ -8767,9 +10332,10 @@ function updatePlayer(){
     // ความเร็วจริงของผู้เล่น
     // ถ้ากินพริก speedMul จะเป็น 1.3
 
-    const moveSpeed =
-      SPD *
-      P.speedMul;
+const moveSpeed =
+  SPD *
+  P.characterSpeedMul *
+  P.speedMul;
 
 
     if(isL()){
@@ -8811,7 +10377,9 @@ function updatePlayer(){
     !jumpWas &&
     P.onGround
   ){
-    P.vy = JUMP_F;
+    P.vy =
+  JUMP_F *
+  G.jumpMul;
     P.onGround = false;
   }
 
@@ -8876,18 +10444,222 @@ if(
   if(P.x>WORLD_W-P.w)P.x=WORLD_W-P.w;
   P.onGround=false;
 
-  for(const pl of G.platforms){
-    if(P.x+P.w>pl.x&&P.x<pl.x+pl.w){
-      if(P.y+P.h>pl.y&&P.y+P.h<pl.y+pl.h+4&&P.vy>=0){
-        P.y=pl.y-P.h; P.vy=0; P.onGround=true;
-      }
+// =====================================================
+// PLAYER GROUND COLLISION
+// Rectangle + Sunnyland Polygon
+// =====================================================
+
+P.onGround = false;
+
+
+// =====================================================
+// 1. RECTANGLE GROUND
+// =====================================================
+
+for(const pl of G.platforms){
+
+  // Wall / Ceiling
+  // ห้ามเอามาคิดเป็นพื้น
+if(
+  pl.t === "dg-wall"
+){
+  continue;
+}
+
+
+  if(
+    P.x + P.w > pl.x &&
+    P.x < pl.x + pl.w
+  ){
+
+    if(
+      P.y + P.h > pl.y &&
+      P.y + P.h <
+        pl.y + pl.h + 4 &&
+      P.vy >= 0
+    ){
+
+      P.y =
+        pl.y -
+        P.h;
+
+      P.vy = 0;
+
+      P.onGround = true;
+
     }
+
   }
+
+}
+
+
+// =====================================================
+// 2. SUNNYLAND POLYGON / SLOPE
+// =====================================================
+
+if(
+  Array.isArray(G.sunnyPolygons) &&
+  P.vy >= 0
+){
+
+  // ใช้กึ่งกลางเท้าผู้เล่น
+  const footX =
+    P.x +
+    P.w / 2;
+
+
+  const footY =
+    P.y +
+    P.h;
+
+
+  let chosenY =
+    null;
+
+  let chosenDistance =
+    Infinity;
+
+
+  for(
+    const polygon
+    of G.sunnyPolygons
+  ){
+
+    const groundY =
+      getSunnyPolygonGroundY(
+        polygon,
+        footX
+      );
+
+
+    if(
+      groundY === null
+    ){
+      continue;
+    }
+
+
+    // ระยะจากเท้าไปพื้น
+    const distance =
+      footY -
+      groundY;
+
+
+    // -6 = เผื่อเดินขึ้น slope
+    // 32 = ป้องกันดูดตัวจากพื้นไกลเกินไป
+    if(
+      distance < -6 ||
+      distance > 32
+    ){
+      continue;
+    }
+
+
+    const absDistance =
+      Math.abs(
+        distance
+      );
+
+
+    // ถ้ามีหลายพื้น
+    // เลือกพื้นที่อยู่ใกล้เท้ามากที่สุด
+    if(
+      absDistance <
+      chosenDistance
+    ){
+
+      chosenDistance =
+        absDistance;
+
+      chosenY =
+        groundY;
+
+    }
+
+  }
+
+
+  if(
+    chosenY !== null
+  ){
+
+    P.y =
+      chosenY -
+      P.h;
+
+    P.vy = 0;
+
+    P.onGround = true;
+
+  }
+
+}
+
+// =====================================================
+// SUNNYLAND POLYGON CEILING
+// กระโดดจากข้างล่างทะลุไม่ได้
+// =====================================================
+
+if(
+  Array.isArray(G.sunnyCeilings) &&
+  P.vy < 0
+){
+
+  // ใช้กลางหัว Player
+  const headX =
+    P.x +
+    P.w / 2;
+
+
+  for(
+    const polygon
+    of G.sunnyCeilings
+  ){
+
+    const ceilingY =
+      getSunnyPolygonCeilingY(
+        polygon,
+        headX
+      );
+
+
+    if(
+      ceilingY === null
+    ){
+      continue;
+    }
+
+
+    // Y ของหัวในเฟรมก่อนหน้า
+    const previousTop =
+      P.y -
+      P.vy;
+
+
+    // หัวกำลังข้ามเส้น Ceiling จากล่างขึ้นบน
+    if(
+      P.y <= ceilingY &&
+      previousTop >= ceilingY - 3
+    ){
+
+      // ดันกลับลงมาใต้เพดาน
+      P.y =
+        ceilingY + 1;
+
+      P.vy = 0;
+
+      break;
+    }
+
+  }
+
+}
   // =====================================================
 // DUNGEON WALL + CEILING COLLISION
 // =====================================================
 
-if(P.x + P.w >= DUNGEON_START){
+if(TILED_FOREST){
 
   for(const pl of G.platforms){
 
@@ -8967,6 +10739,32 @@ if(P.x + P.w >= DUNGEON_START){
 
 }
 
+// =====================================================
+// จำจุดปลอดภัยล่าสุด
+// จำเฉพาะตอนยืนบนพื้น
+// ทุกประมาณ 0.3 วินาที
+// =====================================================
+
+if(P.onGround){
+
+  G.safeGroundTimer =
+    (G.safeGroundTimer || 0) + 1;
+
+  if(
+    G.lastSafeX === undefined ||
+    G.lastSafeY === undefined ||
+    G.safeGroundTimer >= 18
+  ){
+
+    G.lastSafeX = P.x;
+    G.lastSafeY = P.y;
+
+    G.safeGroundTimer = 0;
+
+  }
+
+}
+
   if(P.y>CH+80){
     G.hp =
   Math.max(
@@ -8977,7 +10775,38 @@ if(P.x + P.w >= DUNGEON_START){
 showDamageText(20);
 
 P.hurtT = 50;
-    P.x=Math.max(0,G.camX+40);P.y=GY-P.h;P.vy=0;
+
+
+// ========================================
+// กลับจุดปลอดภัยล่าสุด
+// ========================================
+
+if(
+  Number.isFinite(G.lastSafeX) &&
+  Number.isFinite(G.lastSafeY)
+){
+
+  P.x = G.lastSafeX;
+  P.y = G.lastSafeY;
+
+}
+else{
+
+  // fallback เผื่อยังไม่มีจุดปลอดภัย
+  P.x = Math.max(
+    0,
+    G.camX + 40
+  );
+
+  P.y = GY - P.h;
+
+}
+
+
+// หยุดแรงทั้งหมด
+// ป้องกันเกิดแล้วไหลตกหลุมต่อทันที
+P.vx = 0;
+P.vy = 0;
     updateHUD();
     if(G.hp<=0)doLose('พลังชีวิตหมด! คุณแพ้...');
   }
@@ -9106,6 +10935,39 @@ function hurtP(dmg){
   if(P.hurtT > 0){
     return false;
   }
+
+  // =====================================
+// SHIELD
+// =====================================
+
+if(
+  G.shieldCharges > 0
+){
+
+  G.shieldCharges--;
+
+  showItemNotice(
+    "SHIELD BLOCK!",
+    "#8fd3ff"
+  );
+
+  P.hurtT = 25;
+
+  return false;
+
+}
+
+
+// =====================================
+// STRONG HEART
+// =====================================
+
+dmg =
+  Math.max(
+    1,
+    dmg -
+    G.damageReduction
+  );
 
   G.hp =
     Math.max(
@@ -10676,6 +12538,203 @@ function startForestBossRage(m){
   m.rageEndTime = performance.now() + 10000;
 }
 
+// =====================================================
+// FOREST BOSS GRAVITY + GROUND COLLISION
+// ให้ Minotaur เดินตามระดับพื้น / ทางลาด
+// =====================================================
+
+function updateForestBossGround(m){
+
+  // ===============================
+  // GRAVITY
+  // ===============================
+
+  m.vy += GRAVITY;
+
+  if(m.vy > 12){
+    m.vy = 12;
+  }
+
+
+  m.y += m.vy;
+
+  m.onGround = false;
+
+
+  // ===============================
+  // 1. RECTANGLE GROUND
+  // ===============================
+
+  for(const pl of G.platforms){
+
+    // ไม่ใช้ Wall / Ceiling เป็นพื้น
+    if(
+      pl.t === "dg-wall" ||
+      pl.t === "dg-ceiling"
+    ){
+      continue;
+    }
+
+
+    // ตัวบอสทับช่วง X ของพื้น
+    if(
+      m.x + m.w > pl.x &&
+      m.x < pl.x + pl.w
+    ){
+
+      const bossFootY =
+        m.y + m.h;
+
+
+      // เท้าบอสอยู่ใกล้ด้านบนของพื้น
+      if(
+        bossFootY > pl.y &&
+        bossFootY <
+          pl.y + pl.h + 24 &&
+        m.vy >= 0
+      ){
+
+        // วางเท้าบอสบนพื้น
+        m.y =
+          pl.y - m.h;
+
+        m.vy =
+          0;
+
+        m.onGround =
+          true;
+
+      }
+
+    }
+
+  }
+
+
+  // ===============================
+  // 2. POLYGON / SLOPE
+  // ===============================
+
+  if(
+    Array.isArray(
+      G.sunnyPolygons
+    ) &&
+    m.vy >= 0
+  ){
+
+    const bossFootX =
+      m.x + m.w / 2;
+
+    const bossFootY =
+      m.y + m.h;
+
+
+    let chosenGroundY =
+      null;
+
+    let chosenDistance =
+      Infinity;
+
+
+    for(
+      const polygon
+      of G.sunnyPolygons
+    ){
+
+      const groundY =
+        getSunnyPolygonGroundY(
+          polygon,
+          bossFootX
+        );
+
+
+      if(
+        groundY === null
+      ){
+        continue;
+      }
+
+
+      const distance =
+        bossFootY -
+        groundY;
+
+
+      // Minotaur ตัวใหญ่กว่า
+      // ให้ tolerance มากกว่ามอนปกตินิดหนึ่ง
+      if(
+        distance < -16 ||
+        distance > 40
+      ){
+        continue;
+      }
+
+
+      const absDistance =
+        Math.abs(
+          distance
+        );
+
+
+      if(
+        absDistance <
+        chosenDistance
+      ){
+
+        chosenDistance =
+          absDistance;
+
+        chosenGroundY =
+          groundY;
+
+      }
+
+    }
+
+
+    if(
+      chosenGroundY !== null
+    ){
+
+      m.y =
+        chosenGroundY -
+        m.h;
+
+      m.vy =
+        0;
+
+      m.onGround =
+        true;
+
+    }
+
+  }
+
+
+  // ===============================
+  // ตกแมพ -> กลับจุดเกิด
+  // ===============================
+
+  if(
+    m.y > CH + 150
+  ){
+
+    m.x =
+      m.spawnX;
+
+    m.y =
+      m.spawnY;
+
+    m.vy =
+      0;
+
+    m.chasing =
+      false;
+
+  }
+
+}
+
 function updateForestBoss(m){
   const pCX = P.x + P.w / 2;
   const pCY = P.y + P.h / 2;
@@ -10686,9 +12745,16 @@ function updateForestBoss(m){
   const dx = Math.abs(signedDX);
   const dy = Math.abs(pCY - mCY);
 
-  // Minotaur อยู่กับพื้นเดิมตลอด
-  m.y = m.baseY;
-  m.dir = signedDX >= 0 ? 1 : -1;
+// =====================================
+// Minotaur ใช้ Gravity + Ground จริง
+// =====================================
+
+updateForestBossGround(m);
+
+m.dir =
+  signedDX >= 0
+    ? 1
+    : -1;
 
   if(m.quizCooldown > 0){
     m.quizCooldown--;
@@ -10812,6 +12878,108 @@ function updateForestBoss(m){
 
 // ========== MONSTERS UPDATE ==========
 const CHASE_RANGE=220; // ระยะที่มอนสเตอร์เริ่มวิ่งไล่
+
+// =====================================================
+// SUNNYLAND MONSTER EDGE CHECK
+// เช็กว่าข้างหน้ามอนยังมีพื้นหรือไม่
+// รองรับ Rectangle + Polygon
+// =====================================================
+
+function monsterHasGroundAhead(
+  m,
+  dir
+){
+
+  // จุดข้างหน้าเท้ามอน
+  const aheadX =
+    dir > 0
+      ? m.x + m.w + 14
+      : m.x - 14;
+
+  const footY =
+    m.y + m.h;
+
+
+  // =====================================
+  // RECTANGLE GROUND
+  // =====================================
+
+  for(const pl of G.platforms){
+
+    if(
+      pl.t === "dg-wall" ||
+      pl.t === "dg-ceiling"
+    ){
+      continue;
+    }
+
+    if(
+      aheadX >= pl.x &&
+      aheadX <= pl.x + pl.w
+    ){
+
+      const diff =
+        pl.y - footY;
+
+      // ยอมให้พื้นสูง/ต่ำต่างกันนิดหน่อย
+      if(
+        diff >= -28 &&
+        diff <= 48
+      ){
+        return true;
+      }
+
+    }
+
+  }
+
+
+  // =====================================
+  // POLYGON / SLOPE
+  // =====================================
+
+  if(
+    Array.isArray(
+      G.sunnyPolygons
+    )
+  ){
+
+    for(
+      const polygon
+      of G.sunnyPolygons
+    ){
+
+      const groundY =
+        getSunnyPolygonGroundY(
+          polygon,
+          aheadX
+        );
+
+      if(
+        groundY === null
+      ){
+        continue;
+      }
+
+      const diff =
+        groundY - footY;
+
+      if(
+        diff >= -28 &&
+        diff <= 48
+      ){
+        return true;
+      }
+
+    }
+
+  }
+
+
+  // ไม่มีพื้นข้างหน้า
+  return false;
+
+}
 
 function updateMonsters(){
   const aliveMonsters = G.monsters.filter(m =>
@@ -10955,17 +13123,74 @@ m.onGround = false;
 }
 
 if(m.chasing){
-  const spd = 1.6 + m.lv * 0.35;
-  const dirX = pCX > mCX ? 1 : -1;
+
+  const spd =
+    1.6 + m.lv * 0.35;
+
+  const dirX =
+    pCX > mCX
+      ? 1
+      : -1;
+
   m.dir = dirX;
-  m.x += dirX * spd;
-}else{
-  m.dt++;
-  if(m.dt > 90){
+
+
+  // มีพื้นข้างหน้า → วิ่งได้
+  if(
+    !m.onGround ||
+    monsterHasGroundAhead(
+      m,
+      dirX
+    )
+  ){
+
+    m.x +=
+      dirX * spd;
+
+  }
+  else{
+
+    // เจอขอบเหว
+    // หยุดไล่และหันกลับ
+    m.chasing = false;
     m.dir *= -1;
     m.dt = 0;
+
   }
-  m.x += m.dir * 0.9;
+
+}else{
+
+  m.dt++;
+
+  if(m.dt > 90){
+
+    m.dir *= -1;
+    m.dt = 0;
+
+  }
+
+
+  // มีพื้นข้างหน้า
+  if(
+    !m.onGround ||
+    monsterHasGroundAhead(
+      m,
+      m.dir
+    )
+  ){
+
+    m.x +=
+      m.dir * 0.9;
+
+  }
+  else{
+
+    // เจอหลุม → หันกลับ
+    m.dir *= -1;
+    m.dt = 0;
+
+  }
+
 }
 
 // =====================================================
@@ -11001,28 +13226,147 @@ if(
 
 }
 
+// =====================================================
+// SUNNYLAND MONSTER GRAVITY + GROUND COLLISION
+// Rectangle + Polygon
+// =====================================================
+
 m.vy += GRAVITY;
 
 if(m.vy > 12){
   m.vy = 12;
 }
+
 m.y += m.vy;
 m.onGround = false;
+
+
+// =====================================================
+// 1. RECTANGLE GROUND
+// =====================================================
+
 for(const pl of G.platforms){
+
+  // Wall / Ceiling ไม่ใช่พื้น
+  if(
+    pl.t === "dg-wall" ||
+    pl.t === "dg-ceiling"
+  ){
+    continue;
+  }
+
   if(
     m.x + m.w > pl.x &&
     m.x < pl.x + pl.w
   ){
+
     if(
       m.y + m.h > pl.y &&
-      m.y + m.h < pl.y + pl.h + 18 &&
+      m.y + m.h <
+        pl.y + pl.h + 18 &&
       m.vy >= 0
     ){
-      m.y = pl.y - m.h;
+
+      m.y =
+        pl.y - m.h;
+
       m.vy = 0;
       m.onGround = true;
+
     }
+
   }
+
+}
+
+
+// =====================================================
+// 2. SUNNYLAND POLYGON / SLOPE
+// =====================================================
+
+if(
+  Array.isArray(G.sunnyPolygons) &&
+  m.vy >= 0
+){
+
+  // กึ่งกลางเท้าของมอน
+  const monsterFootX =
+    m.x + m.w / 2;
+
+  const monsterFootY =
+    m.y + m.h;
+
+
+  let chosenGroundY = null;
+  let chosenDistance = Infinity;
+
+
+  for(
+    const polygon
+    of G.sunnyPolygons
+  ){
+
+    const groundY =
+      getSunnyPolygonGroundY(
+        polygon,
+        monsterFootX
+      );
+
+
+    if(
+      groundY === null
+    ){
+      continue;
+    }
+
+
+    const distance =
+      monsterFootY -
+      groundY;
+
+
+    // เผื่อสำหรับทางลาด
+    if(
+      distance < -10 ||
+      distance > 32
+    ){
+      continue;
+    }
+
+
+    const absDistance =
+      Math.abs(distance);
+
+
+    if(
+      absDistance <
+      chosenDistance
+    ){
+
+      chosenDistance =
+        absDistance;
+
+      chosenGroundY =
+        groundY;
+
+    }
+
+  }
+
+
+  if(
+    chosenGroundY !== null
+  ){
+
+    m.y =
+      chosenGroundY -
+      m.h;
+
+    m.vy = 0;
+    m.onGround = true;
+
+  }
+
 }
 if(m.y > CH + 100){
 
@@ -11082,6 +13426,43 @@ function killMonster(m){
 
   G.score +=
     reward;
+
+    // =====================================
+// GOLD HEART
+// ฆ่ามอน -> ฟื้น HP
+// =====================================
+
+if(
+  G.killHeal > 0
+){
+
+  const oldHp =
+    G.hp;
+
+
+  G.hp =
+    Math.min(
+      G.maxHp,
+      G.hp +
+      G.killHeal
+    );
+
+
+  if(G.hp > oldHp){
+
+    showItemNotice(
+
+      "GOLD HEART +" +
+      (G.hp - oldHp) +
+      " HP",
+
+      "#ffd76a"
+
+    );
+
+  }
+
+}
 
 
   m.doubleRewardPending =
@@ -12689,7 +15070,14 @@ function drawForestBoss(m, sx){
 
   // ยึด "เท้า sprite" กับก้น hitbox
   // +8 ช่วยชดเชยพื้นที่โปร่งใสด้านล่างของ PNG เล็กน้อย
-  const drawY = m.y + m.h - drawH + 8;
+  // เลื่อนภาพ Minotaur ลงให้เท้าตรงกับพื้น
+const MINOTAUR_DRAW_Y_OFFSET = 30;
+
+const drawY =
+  m.y +
+  m.h -
+  drawH +
+  MINOTAUR_DRAW_Y_OFFSET;
 
   ctx.save();
   ctx.fillStyle = "rgba(0,0,0,0.28)";
@@ -13152,41 +15540,41 @@ if(
 
   let frames =
     selectedCharacter === "female"
-      ? 4
+      ? 8
       : 10;
 
-  if(!P.onGround){
+if(!P.onGround){
 
-    if(P.vy < 0){
+  if(P.vy < 0){
 
-      sprite = jumpSprite;
-
-      frames =
-        selectedCharacter === "female"
-          ? 6
-          : 6;
-
-    }else{
-
-      sprite = fallSprite;
-
-      frames =
-        selectedCharacter === "female"
-          ? 3
-          : 4;
-
-    }
-
-  }else if(Math.abs(P.vx) > 0.1){
-
-    sprite = runSprite;
+    sprite = jumpSprite;
 
     frames =
       selectedCharacter === "female"
-        ? 7
-        : 10;
+        ? 3
+        : 6;
+
+  }else{
+
+    sprite = fallSprite;
+
+    frames =
+      selectedCharacter === "female"
+        ? 3
+        : 4;
 
   }
+
+}else if(Math.abs(P.vx) > 0.1){
+
+  sprite = runSprite;
+
+  frames =
+    selectedCharacter === "female"
+      ? 8
+      : 10;
+
+}
 
   const frameWidth = sprite.width / frames;
   const frameHeight = sprite.height;
@@ -13195,27 +15583,32 @@ if(
     Math.floor(Date.now() / 100) % frames;
 
   // ขนาดตัวละคร
-  const drawW =
+const drawW =
   selectedCharacter === "female"
-    ? 60
+    ? 110
     : 128;
 
 const drawH =
   selectedCharacter === "female"
-    ? 40
+    ? 88
     : 128;
 
   ctx.save();
 
 const drawY =
   selectedCharacter === "female"
-    ? P.y + 21
+    ? P.y + P.h - drawH + 22
     : P.y - 20;
 
 const drawX =
   sx - (drawW / 2 - 14);
 
-if(P.facing === -1){
+  const flipPlayer =
+  selectedCharacter === "female"
+    ? P.facing === 1
+    : P.facing === -1;
+
+if(flipPlayer){
 
   ctx.scale(-1,1);
 
@@ -13380,6 +15773,118 @@ function drawFrostRageUI(){
   ctx.restore();
 }
 
+// =====================================================
+// DRAW SUNNYLAND BACKGROUND
+// =====================================================
+
+function drawSunnyBG(){
+
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+
+  // -----------------------------------
+  // 1) สีพื้นหลังเผื่อรูปยังไม่โหลด
+  // -----------------------------------
+  ctx.fillStyle = "#8ee7f5";
+  ctx.fillRect(0, 0, CW, CH);
+
+  // -----------------------------------
+  // 2) back.png (ฟ้า/ทะเล)
+  // ชั้นหลังสุด
+  // -----------------------------------
+  if(
+    sunnyBackImg &&
+    sunnyBackImg.complete &&
+    sunnyBackImg.naturalWidth > 0
+  ){
+
+    const imgW = sunnyBackImg.naturalWidth;
+    const imgH = sunnyBackImg.naturalHeight;
+
+    const scale = 2;
+    const drawW = imgW * scale;
+    const drawH = imgH * scale;
+
+    const parallaxX =
+      -(
+        G.camX * 0.05
+      ) % drawW;
+
+    for(
+      let x = parallaxX - drawW;
+      x < CW + drawW;
+      x += drawW
+    ){
+
+      ctx.drawImage(
+        sunnyBackImg,
+        x,
+        0,
+        drawW,
+        drawH
+      );
+
+    }
+  }
+
+// ===============================================
+// MIDDLE — ใช้ทั้งรูป
+// ===============================================
+
+if(
+  sunnyMiddleImg.complete &&
+  sunnyMiddleImg.naturalWidth > 0
+){
+
+  const scale = 1;
+
+  const drawW =
+    sunnyMiddleImg.naturalWidth *
+    scale;
+
+  const drawH =
+    sunnyMiddleImg.naturalHeight *
+    scale;
+
+
+  // Middle ขยับเร็วกว่าท้องฟ้านิดหนึ่ง
+  const offset =
+    -(
+      (G.camX * 0.18) %
+      drawW
+    );
+
+
+  // สำคัญ:
+  // เลื่อนรูปลง เพื่อให้ส่วนพุ่มอยู่ในฉาก
+  // และส่วนสีทึบลงไปอยู่หลัง Ground
+  const y =
+    CH - drawH + 100;
+
+
+  for(
+    let x = offset - drawW;
+    x < CW + drawW;
+    x += drawW
+  ){
+
+    ctx.drawImage(
+      sunnyMiddleImg,
+
+      Math.round(x),
+      Math.round(y),
+
+      drawW,
+      drawH
+    );
+
+  }
+
+}
+
+  ctx.restore();
+
+}
 
 // ========== GAME LOOP ==========
 function loop(){
@@ -13430,68 +15935,34 @@ function loop(){
   // DRAW WORLD
   // =========================
 
-const usingTiledForest =
-  P.x < DUNGEON_START &&
+// =========================
+// SUNNYLAND WORLD
+// =========================
+
+// ตอนนี้ยังใช้ Background Forest เดิมไปก่อน
+drawSunnyBG();
+
+if(
   TILED_FOREST &&
-  TILED_FOREST_TILESETS.length > 0;
-
-
-drawBG();
-
-
-if(usingTiledForest){
-
-  // Forest ใหม่จาก Tiled
-  drawTiledForestLayer(
-    "Ground"
-  );
-
-  drawTiledForestLayer(
-    "Prop"
-  );
-
-}
-else if(
-  P.x >= DUNGEON_START &&
-  TILED_DUNGEON
+  TILED_FOREST_TILESETS.length > 0
 ){
 
-  // Dungeon ใหม่จาก Tiled
-  drawTiledLayer(
-    "Background"
-  );
+  // วาดจากชั้นล่างขึ้นชั้นบน
+  drawTiledForestLayer("Fix");
 
-  drawTiledLayer(
-    "Ground"
-  );
+  drawTiledForestLayer("Background");
 
-  drawTiledLayer(
-    "Prop"
-  );
+  drawTiledForestLayer("grass");
 
-}
-else{
+  drawTiledForestLayer("Ground");
 
-
-  drawDungeon();
-  drawDungeonDecos();
-  drawDungeonProps();
-
-}
-
-  //debugTerrain();
-
-if(!usingTiledForest){
-
-  drawDecor();
-  drawPlatforms();
-  drawProps();
+  drawTiledForestLayer("Prop");
 
 }
 
 
 // Portal ยังวาดตามปกติ
-drawPortals();
+// drawPortals(); // ปิด Portal เก่า
 
   //drawFlag();
 
@@ -13589,14 +16060,114 @@ function updateCoins(){
     // PLAYER / COIN COLLISION
     // =========================
 
-    const cdx =
-      Math.abs(pCX - (c.x + 8));
+// =====================================================
+// COIN MAGNET ANIMATION
+// =====================================================
 
-    const cdy =
-      Math.abs(pCY - (c.y + 8));
+// จุดกึ่งกลางของเหรียญ
+let coinCX =
+  c.x + 8;
+
+let coinCY =
+  c.y + 8;
 
 
-    if(cdx < 22 && cdy < 22){
+// ระยะจากเหรียญ -> Player
+let dx =
+  pCX - coinCX;
+
+let dy =
+  pCY - coinCY;
+
+
+let distance =
+  Math.hypot(
+    dx,
+    dy
+  );
+
+
+// =====================================
+// ถ้ามี Magnet Perk
+// และเหรียญอยู่ในระยะดูด
+// =====================================
+
+if(
+  G.coinMagnetRadius > 0 &&
+  distance <
+    (
+      22 +
+      G.coinMagnetRadius
+    ) &&
+  distance > 0
+){
+
+  // ยิ่งเข้ามาใกล้
+  // ยิ่งพุ่งเข้าหาเร็วขึ้นนิดหนึ่ง
+
+  const magnetSpeed =
+    2.2 +
+    Math.min(
+      4,
+      (
+        (
+          22 +
+          G.coinMagnetRadius
+        ) -
+        distance
+      ) * 0.025
+    );
+
+
+  c.x +=
+    (
+      dx /
+      distance
+    ) *
+    magnetSpeed;
+
+
+  c.y +=
+    (
+      dy /
+      distance
+    ) *
+    magnetSpeed;
+
+
+  // คำนวณตำแหน่งใหม่หลังเหรียญเคลื่อน
+  coinCX =
+    c.x + 8;
+
+  coinCY =
+    c.y + 8;
+
+
+  dx =
+    pCX -
+    coinCX;
+
+  dy =
+    pCY -
+    coinCY;
+
+
+  distance =
+    Math.hypot(
+      dx,
+      dy
+    );
+
+}
+
+
+// =====================================
+// เก็บจริงเมื่อเหรียญมาถึงตัว Player
+// =====================================
+
+if(
+  distance < 22
+){
 
       c.alive = false;
 
@@ -13870,10 +16441,10 @@ const FRUIT_TYPES = {
     effect(){
 
       G.hp =
-        Math.min(
-          100,
-          G.hp + 20
-        );
+  Math.min(
+    G.maxHp,
+    G.hp + 20
+  );
 
       updateHUD();
 
@@ -14429,11 +17000,11 @@ function updateHeartDrops(){
           // +5 HP
           // แต่ไม่เกิน 100
 
-          G.hp =
-            Math.min(
-              100,
-              G.hp + 5
-            );
+G.hp =
+  Math.min(
+    G.maxHp,
+    G.hp + 5
+  );
 
 
           updateHUD();
@@ -15530,8 +18101,60 @@ function showCoinCombo(msg, col){
 
 // ========== QUESTION SYSTEM ==========
 function triggerQ(m){
-  if(m.stunT>0)return; // stunned monsters can't trigger questions
-  G.inQ=true;G.curMonster=m;G.wrongCnt=0;
+
+  // ==========================================
+  // SAFETY
+  // มอนตายแล้ว / ทำ Quiz ครบแล้ว
+  // ห้ามเปิดคำถามอีกเด็ดขาด
+  // ==========================================
+
+  if(!m){
+    return;
+  }
+
+  if(!m.alive){
+    return;
+  }
+
+  if(m.quizFinished){
+    return;
+  }
+
+  if(m.stunT > 0){
+    return;
+  }
+
+
+  const need =
+    Number.isFinite(m.quizNeed)
+      ? m.quizNeed
+      : m.lv;
+
+
+  const correct =
+    Number.isFinite(m.quizCorrect)
+      ? m.quizCorrect
+      : 0;
+
+
+  // เผื่อ state หลุดมาถึงตรงนี้
+  if(correct >= need){
+
+    m.quizFinished = true;
+
+    killMonster(m);
+
+    return;
+  }
+
+
+  // ==========================================
+  // เปิดคำถาม
+  // ==========================================
+
+  G.inQ = true;
+  G.curMonster = m;
+  G.wrongCnt = 0;G.curMonster=m;G.wrongCnt=0;
   const lvKey=m.lv===1?'easy':m.lv===2?'mid':m.lv===3?'hard':'expert';
 const pool=QS[lvKey];
 
@@ -15572,7 +18195,25 @@ G.usedQ[lvKey].push(G.curQ);
   document.getElementById('q-input').className='';
   document.getElementById('q-fb').className='';
   document.getElementById('q-hint').textContent='';
-  document.getElementById('q-tries').textContent='โอกาส: 3';
+  const quizNeed =
+  Number.isFinite(m.quizNeed)
+    ? m.quizNeed
+    : m.lv;
+
+const quizCorrect =
+  Number.isFinite(m.quizCorrect)
+    ? m.quizCorrect
+    : 0;
+
+
+document
+  .getElementById("q-tries")
+  .textContent =
+  "คำถาม " +
+  (quizCorrect + 1) +
+  " / " +
+  quizNeed +
+  "  |  โอกาส: 3";
   document.getElementById('q-popup').classList.add('show');
   setTimeout(()=>document.getElementById('q-input').focus(),120);
 }
@@ -15588,9 +18229,17 @@ function checkAns(){
 
   const ok=ua===ca||ca.split(/\s+/).some(w=>ua.includes(w)&&w.length>1)||ua.split(/\s+/).some(w=>ca.includes(w)&&w.length>1);
 
-  if(ok){
-    // =====================================================
-// FOREST MINOTAUR - CORRECT ANSWER
+if(ok){
+
+  // ===============================
+  // PERK QUESTION COUNT
+  // ===============================
+
+  registerCorrectQuestion();
+
+
+  // =====================================================
+  // FOREST MINOTAUR - CORRECT ANSWER
 // 3 HARD questions, +1 score each
 // =====================================================
 if(
@@ -15992,71 +18641,327 @@ G.nextQuestionDouble =
 
     playCorrectSound();
     hint.textContent='';document.getElementById('q-tries').textContent='';
-    setTimeout(()=>{
 
-  if(!G.curMonster) return;
+// =====================================================
+// NORMAL MONSTER - CORRECT ANSWER
+// =====================================================
 
-  G.curMonster.hp--;
+// จำมอนตัวที่กำลังตอบไว้
+const answeredMonster =
+  G.curMonster;
 
-  if(G.curMonster.hp <= 0){
 
-    document
-      .getElementById('q-popup')
-      .classList.remove('show');
+// ไม่มีมอนแล้ว
+if(
+  !answeredMonster ||
+  !answeredMonster.alive
+){
 
-    killMonster(G.curMonster);
+  G.curQ = null;
+  G.curMonster = null;
+  G.inQ = false;
 
-    G.curMonster = null;
-    G.inQ = false;
+  document
+    .getElementById("q-popup")
+    .classList
+    .remove("show");
 
-  }else{
-
-    fb.textContent =
-      '✓ ถูกต้อง! เหลือ HP ' +
-      G.curMonster.hp;
-
-    inp.classList.remove('ok');
-    inp.value = '';
-
-    G.wrongCnt = 0;
-
-    const lvKey =
-  G.curMonster.lv === 1
-    ? 'easy'
-    : G.curMonster.lv === 2
-      ? 'mid'
-      : G.curMonster.lv === 3
-        ? 'hard'
-        : 'expert';
-
-const pool = QS[lvKey];
-
-if(G.usedQ[lvKey].length >= pool.length){
-  G.usedQ[lvKey] = [];
+  return;
 }
 
-const available = pool.filter(
-  q => !G.usedQ[lvKey].includes(q)
+
+// =====================================================
+// ล็อกคำถามเดิมทันที
+// กันกด Enter ซ้ำ
+// =====================================================
+
+G.curQ = null;
+
+
+// =====================================================
+// จำนวนข้อที่ต้องตอบ
+// Lv.1 = 1
+// Lv.2 = 2
+// Lv.3 = 3
+// =====================================================
+
+const need =
+  Number.isFinite(
+    answeredMonster.answersNeeded
+  )
+    ? answeredMonster.answersNeeded
+    : answeredMonster.lv;
+
+
+// =====================================================
+// นับคำตอบทันที
+// ไม่รอ setTimeout แล้ว
+// =====================================================
+
+answeredMonster.answersCorrect =
+  (
+    answeredMonster.answersCorrect ||
+    0
+  ) + 1;
+
+
+// ให้ HP sync กับจำนวนข้อที่เหลือ
+answeredMonster.hp =
+  Math.max(
+    0,
+    need -
+    answeredMonster.answersCorrect
+  );
+
+
+console.log(
+  "👾 MONSTER QUIZ:",
+  answeredMonster.answersCorrect,
+  "/",
+  need,
+  "LV:",
+  answeredMonster.lv
 );
 
-G.curQ =
-  available[
-    Math.floor(
-      Math.random() * available.length
-    )
-  ];
 
-G.usedQ[lvKey].push(G.curQ);
+// =====================================================
+// ครบจำนวนแล้ว = ปิดมอนทันที
+// =====================================================
+
+if(
+  answeredMonster.answersCorrect >=
+  need
+){
+
+  // ล็อกไว้เลย
+  // ต่อให้โค้ดอื่นพยายามเปิดคำถามก็ห้ามแล้ว
+  answeredMonster.quizFinished =
+    true;
+
+
+  fb.textContent =
+    "✓ ถูกต้อง! " +
+    answeredMonster.answersCorrect +
+    " / " +
+    need;
+
+
+  document
+    .getElementById("q-tries")
+    .textContent =
+    "COMPLETE!";
+
+
+  // ฆ่ามอนทันที
+  killMonster(
+    answeredMonster
+  );
+
+
+  // ล้างระบบคำถามทันที
+  G.curMonster =
+    null;
+
+  G.curQ =
+    null;
+
+  G.inQ =
+    false;
+
+
+  // โชว์ COMPLETE แป๊บหนึ่ง
+  // แล้วค่อยปิด popup
+  setTimeout(
+    ()=>{
+
+      document
+        .getElementById(
+          "q-popup"
+        )
+        .classList
+        .remove(
+          "show"
+        );
+
+    },
+    500
+  );
+
+
+  return;
+}
+
+
+// =====================================================
+// ยังไม่ครบ
+// เช่น Lv.2 ตอนนี้ 1 / 2
+// =====================================================
+
+fb.textContent =
+  "✓ ถูกต้อง! " +
+  answeredMonster.answersCorrect +
+  " / " +
+  need;
+
+
+document
+  .getElementById("q-tries")
+  .textContent =
+  "คำถาม " +
+  answeredMonster.answersCorrect +
+  " / " +
+  need;
+
+
+// =====================================================
+// รอแป๊บเดียว แล้วสร้างคำถามถัดไป
+// =====================================================
+
+setTimeout(
+  ()=>{
+
+    // -----------------------------------------
+    // SAFETY
+    // ถ้ามอนตาย/ครบแล้ว ห้ามสร้างข้อใหม่
+    // -----------------------------------------
+
+    if(
+      !answeredMonster.alive ||
+      answeredMonster.quizFinished
+    ){
+      return;
+    }
+
+
+    if(
+      answeredMonster.answersCorrect >=
+      need
+    ){
+      return;
+    }
+
+
+    // ถ้าระบบเปลี่ยนไปจับมอนตัวอื่นแล้ว
+    // ก็ห้ามสร้างคำถามต่อ
+    if(
+      G.curMonster !==
+      answeredMonster
+    ){
+      return;
+    }
+
+
+    inp.classList.remove(
+      "ok"
+    );
+
+    inp.value =
+      "";
+
+    G.wrongCnt =
+      0;
+
+
+    // =========================================
+    // เลือกระดับคำถาม
+    // =========================================
+
+    const lvKey =
+      answeredMonster.lv === 1
+        ? "easy"
+        : answeredMonster.lv === 2
+          ? "mid"
+          : answeredMonster.lv === 3
+            ? "hard"
+            : "expert";
+
+
+    const pool =
+      QS[lvKey];
+
+
+    if(
+      G.usedQ[lvKey].length >=
+      pool.length
+    ){
+
+      G.usedQ[lvKey] =
+        [];
+
+    }
+
+
+    let available =
+      pool.filter(
+        q =>
+          !G.usedQ[
+            lvKey
+          ].includes(q)
+      );
+
+
+    // กัน array ว่าง
+    if(
+      available.length === 0
+    ){
+
+      G.usedQ[lvKey] =
+        [];
+
+      available =
+        [...pool];
+
+    }
+
+
+    // =========================================
+    // สุ่มข้อใหม่
+    // =========================================
+
+    G.curQ =
+      available[
+        Math.floor(
+          Math.random() *
+          available.length
+        )
+      ];
+
+
+    G.usedQ[
+      lvKey
+    ].push(
+      G.curQ
+    );
+
 
     document
-      .getElementById('q-text')
-      .textContent = G.curQ.q;
+      .getElementById(
+        "q-text"
+      )
+      .textContent =
+      G.curQ.q;
+
+
+    document
+      .getElementById(
+        "q-tries"
+      )
+      .textContent =
+      "ข้อ " +
+      (
+        answeredMonster.answersCorrect +
+        1
+      ) +
+      " / " +
+      need +
+      "  |  โอกาส: 3";
+
 
     inp.focus();
 
-  }
-
-},1000);
+  },
+  650
+);
 } else {
 
 
@@ -16351,9 +19256,35 @@ function updateHUD(){
   document.getElementById('h-score').textContent=parseFloat(G.score).toFixed(1);
   document.getElementById('h-remain').textContent=Math.max(0,14-G.killed);
   document.getElementById('h-coins').textContent=(G.coinScore%5)+'/5';
-  const hb=document.getElementById('hp-bar');
-  hb.style.width=G.hp+'%';
-  hb.style.background=G.hp>50?'#3aaf3a':G.hp>25?'#e08000':'#e03c28';
+const hb =
+  document.getElementById(
+    'hp-bar'
+  );
+
+
+const hpPercent =
+  Math.max(
+    0,
+    Math.min(
+      100,
+      (
+        G.hp /
+        G.maxHp
+      ) * 100
+    )
+  );
+
+
+hb.style.width =
+  hpPercent + '%';
+
+
+hb.style.background =
+  hpPercent > 50
+    ? '#3aaf3a'
+    : hpPercent > 25
+      ? '#e08000'
+      : '#e03c28';
 }
 
 // ========== SCREENS ==========
@@ -16533,7 +19464,35 @@ function startGame(){
 
   G.running=true;
   G.score=0;
-  G.hp=100;
+// =====================================================
+// CHARACTER PASSIVES
+// =====================================================
+
+if(
+  selectedCharacter === "female"
+){
+
+  // =========================
+  // CAT
+  // =========================
+
+  G.maxHp = 80;
+  G.hp = G.maxHp;
+
+  P.characterSpeedMul = 1.10;
+
+}else{
+
+  // =========================
+  // BOY
+  // =========================
+
+  G.maxHp = 120;
+  G.hp = G.maxHp;
+
+  P.characterSpeedMul = 1.00;
+
+}
   G.camX=0;
   G.killed=0;
   G.inQ=false;
@@ -16551,6 +19510,37 @@ function startGame(){
   G.fruits=[];
 
   G.nextQuestionDouble=0;
+
+  // =====================================================
+// RESET PERK
+// =====================================================
+
+G.perkQuestionCount = 0;
+G.perkChoicesTaken = 0;
+G.perkChoosing = false;
+
+
+G.perks = {
+  wing:0,
+  heart:0,
+  magnet:0,
+  star:0,
+  shield:0,
+  goldHeart:0
+};
+
+
+G.jumpMul = 1;
+
+G.damageReduction = 0;
+
+G.coinMagnetRadius = 0;
+
+G.correctScoreBonus = 0;
+
+G.shieldCharges = 0;
+
+G.killHeal = 0;
 
   G.itemClock=
     performance.now();
@@ -16580,13 +19570,9 @@ G.coins=[];
 
 buildLevel();
 
-// Forest ใหม่
+// Sunnyland
 applyTiledForestCollision();
 applyTiledForestEntities();
-
-// ใช้ Collision จากแมพ Tiled
-applyTiledDungeonCollision();
-applyTiledDungeonMonsters();
 
 // ===============================
 // จุดเกิด Player จาก Forest Tiled
@@ -16605,16 +19591,15 @@ if(TILED_FOREST_PLAYER_START){
 
 }
 
-// ล้างเหรียญที่ buildLevel สร้างไว้ก่อน
+// ล้างของเก่า
 G.coins = [];
+G.fruits = [];
+G.hearts = [];
 
-// ด่านหลัก
-spawnForestCoins();
 
-// Dungeon
-spawnTiledDungeonCoins();
-
-spawnRandomFruits();
+// โหลดเหรียญจาก Tiled
+applyTiledSunnyCoins();
+applyTiledSunnyFruits();
 
 updateHUD();
 showStageBanner();
@@ -16664,15 +19649,29 @@ function openCharacterConfirm(type){
         document.getElementById("confirmName").textContent =
         "BOY";
 
+        document
+  .getElementById("confirmStats")
+  .innerHTML =
+  "HP 120<br>" +
+  "SPEED 100%<br>" +
+  "PASSIVE: HIGH HP";
+
     }else{
 
-        document.getElementById("confirmImg").src =
-        "Female.png";
+    document.getElementById("confirmImg").src =
+    "Cat.png";
 
-        document.getElementById("confirmName").textContent =
-        "ผู้หญิง";
+    document.getElementById("confirmName").textContent =
+    "CAT";
 
-    }
+    document
+  .getElementById("confirmStats")
+  .innerHTML =
+  "HP 80<br>" +
+  "SPEED 110%<br>" +
+  "PASSIVE: FAST RUNNER";
+
+}
 
 }
 
@@ -16702,7 +19701,7 @@ showTitle();
 
 </script>
 <div id="loadingScreen" style="display:none;">
-  <img id="loadingMushroom" src="mushroom.png">
+  <img id="loadingMushroom" src="Mouse.png">
 
   <div id="loadingText">
     Loading
@@ -16712,10 +19711,29 @@ showTitle();
 
   <div id="stageBannerInner">
 
-    <img src="Mushroom2.png" id="stageIcon">
+    <img src="Cat2.png" id="stageIcon">
 
     <div id="stageName">
-      Mushroom Land
+      Sunny Land
+    </div>
+
+  </div>
+
+</div>
+
+<div id="perkScreen">
+
+  <div id="perkPanel">
+
+    <div id="perkTitle">
+      CHOOSE A PERK
+    </div>
+
+    <div id="perkSub">
+      10 QUESTIONS CLEARED!
+    </div>
+
+    <div id="perkCards">
     </div>
 
   </div>
