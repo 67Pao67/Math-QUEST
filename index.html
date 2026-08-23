@@ -1474,6 +1474,20 @@ position:relative;
   <div class="hud-item"><span class="hud-label">เหลือ</span><span id="h-remain">10</span></div>
   <div class="hud-sep"></div>
   <div class="hud-item"><span class="hud-label">บอส</span><span style="color:#3aff3a;font-size:9px">16+</span></div>
+  <div class="hud-sep"></div>
+
+<div
+  id="music-btn"
+  onclick="toggleGameMusic()"
+  style="
+    color:#f5c518;
+    font-size:18px;
+    cursor:pointer;
+    user-select:none;
+  "
+>
+  🔊
+</div>
 </div>
 
 <canvas id="gameCanvas"></canvas>
@@ -3452,6 +3466,76 @@ const DUNGEON_END = 999999;
 const GRAVITY = 0.52;
 const JUMP_F = -13;
 const SPD = 3.2;
+
+// =====================================================
+// GAME BACKGROUND MUSIC
+// =====================================================
+
+const gameMusic =
+  new Audio("gameMusic.mp3");
+
+gameMusic.loop = true;
+
+// 0.25 = 25%
+gameMusic.volume = 0.25;
+
+let musicMuted = false;
+
+
+function startGameMusic(){
+
+  if(musicMuted){
+    return;
+  }
+
+  if(gameMusic.paused){
+
+    gameMusic
+      .play()
+      .catch(err=>{
+        console.log(
+          "🎵 Music waiting for user interaction",
+          err
+        );
+      });
+
+  }
+
+}
+
+
+function toggleGameMusic(){
+
+  musicMuted =
+    !musicMuted;
+
+  const btn =
+    document.getElementById(
+      "music-btn"
+    );
+
+
+  if(musicMuted){
+
+    gameMusic.pause();
+
+    if(btn){
+      btn.textContent =
+        "🔇";
+    }
+
+  }else{
+
+    startGameMusic();
+
+    if(btn){
+      btn.textContent =
+        "🔊";
+    }
+
+  }
+
+}
 
 
 // ========== AUDIO (simple pixel SFX) ==========
@@ -18102,27 +18186,15 @@ function showCoinCombo(msg, col){
 // ========== QUESTION SYSTEM ==========
 function triggerQ(m){
 
-  // ==========================================
-  // SAFETY
-  // มอนตายแล้ว / ทำ Quiz ครบแล้ว
-  // ห้ามเปิดคำถามอีกเด็ดขาด
-  // ==========================================
+  // กันเปิด Quiz ซ้อน
+  if(G.inQ)return;
 
-  if(!m){
-    return;
-  }
+  if(!m)return;
+  if(!m.alive)return;
+  if(m.quizFinished)return;
+  if(m.stunT>0)return;
 
-  if(!m.alive){
-    return;
-  }
-
-  if(m.quizFinished){
-    return;
-  }
-
-  if(m.stunT > 0){
-    return;
-  }
+  G.inQ = true;
 
 
   const need =
@@ -18729,27 +18801,19 @@ console.log(
 // =====================================================
 
 if(
-  answeredMonster.answersCorrect >=
-  need
+  answeredMonster.answersCorrect >= need
 ){
 
-  // ล็อกไว้เลย
-  // ต่อให้โค้ดอื่นพยายามเปิดคำถามก็ห้ามแล้ว
-  answeredMonster.quizFinished =
-    true;
-
+  answeredMonster.quizFinished = true;
 
   fb.textContent =
-    "✓ ถูกต้อง! " +
-    answeredMonster.answersCorrect +
-    " / " +
-    need;
+    "✓ ถูกต้อง! มอนสเตอร์ถูกกำจัด!";
 
+  fb.className = "ok";
 
   document
     .getElementById("q-tries")
-    .textContent =
-    "COMPLETE!";
+    .textContent = "";
 
 
   // ฆ่ามอนทันที
@@ -18758,34 +18822,29 @@ if(
   );
 
 
-  // ล้างระบบคำถามทันที
-  G.curMonster =
-    null;
-
-  G.curQ =
-    null;
-
-  G.inQ =
-    false;
+  // เคลียร์มอน/โจทย์
+  G.curMonster = null;
+  G.curQ = null;
 
 
-  // โชว์ COMPLETE แป๊บหนึ่ง
-  // แล้วค่อยปิด popup
-  setTimeout(
-    ()=>{
+  // =====================================================
+  // สำคัญ:
+  // ยังห้าม G.inQ = false ตรงนี้
+  // ให้เกมล็อกไว้จน popup เก่าปิดเสร็จก่อน
+  // =====================================================
 
-      document
-        .getElementById(
-          "q-popup"
-        )
-        .classList
-        .remove(
-          "show"
-        );
+  setTimeout(()=>{
 
-    },
-    500
-  );
+    document
+      .getElementById("q-popup")
+      .classList
+      .remove("show");
+
+
+    // ตอนนี้ค่อยปลดเกม
+    G.inQ = false;
+
+  },500);
 
 
   return;
@@ -19368,6 +19427,9 @@ function showLoading(nextAction){
 }
 
 function showLoadingToCharacter(){
+
+  // เริ่มเพลงหลังผู้เล่นกด TAP TO PLAY
+  startGameMusic();
 
   showLoading(()=>{
 
