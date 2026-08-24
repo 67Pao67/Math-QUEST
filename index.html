@@ -2731,7 +2731,16 @@ perks:{
   magnet:0,
   star:0,
   shield:0,
-  goldHeart:0
+  goldHeart:0,
+
+  // NEW PERKS
+  secondDawn:0,
+  mindGuard:0,
+  rabbitSoul:0,
+  devilsContract:0,
+  lastSpark:0,
+  demonDice:0,
+  lifeElixir:0
 },
 
 
@@ -2747,6 +2756,24 @@ correctScoreBonus:0,
 shieldCharges:0,
 
 killHeal:0,
+
+
+// =====================================================
+// NEW PERK RUNTIME VALUES
+// =====================================================
+secondDawnReady:false,
+secondDawnUsed:false,
+
+mindGuardChance:0,
+
+doubleJumpEnabled:false,
+
+devilsContract:false,
+
+lastSparkEnabled:false,
+
+lifeElixirHeal:0,
+lifeElixirTimerMs:0,
 
 
 bossKilled:false,
@@ -2895,6 +2922,174 @@ const PERK_CARDS = [
         G.perks.goldHeart * 4;
 
     }
+  },
+
+
+  // =====================================
+  // SECOND DAWN
+  // =====================================
+  {
+    id:"secondDawn",
+    name:"SECOND DAWN",
+    image:"SecondDawn.png",
+    desc:"REVIVE ONCE • SCORE -5",
+    maxLv:1,
+
+    apply(){
+      G.perks.secondDawn++;
+      G.secondDawnReady = true;
+      G.secondDawnUsed = false;
+    }
+  },
+
+
+  // =====================================
+  // MIND GUARD
+  // LV.1 25% -> MAX 50%
+  // =====================================
+  {
+    id:"mindGuard",
+    name:"MIND GUARD",
+    image:"MindGuard.png",
+    desc:"25%+ CHANCE TO BLOCK QUIZ DAMAGE",
+    maxLv:6,
+
+    apply(){
+      G.perks.mindGuard++;
+
+      G.mindGuardChance =
+        Math.min(
+          0.50,
+          0.25 +
+          (G.perks.mindGuard - 1) * 0.05
+        );
+    }
+  },
+
+
+  // =====================================
+  // RABBIT SOUL
+  // =====================================
+  {
+    id:"rabbitSoul",
+    name:"RABBIT SOUL",
+    image:"RabbitSoul.png",
+    desc:"DOUBLE JUMP • MAX HP -50",
+    maxLv:1,
+
+    apply(){
+      G.perks.rabbitSoul++;
+      G.doubleJumpEnabled = true;
+
+      G.maxHp =
+        Math.max(
+          1,
+          G.maxHp - 50
+        );
+
+      G.hp =
+        Math.min(
+          G.hp,
+          G.maxHp
+        );
+
+      P.airJumpsLeft = 1;
+      updateHUD();
+    }
+  },
+
+
+  // =====================================
+  // DEVIL'S CONTRACT
+  // =====================================
+  {
+    id:"devilsContract",
+    name:"DEVIL'S CONTRACT",
+    image:"DevilsContract.png",
+    desc:"MAX HP = 1 • MONSTERS NEED 1 ANSWER",
+    maxLv:1,
+
+    apply(){
+      G.perks.devilsContract++;
+      G.devilsContract = true;
+
+      G.maxHp = 1;
+      G.hp = 1;
+
+      updateHUD();
+    }
+  },
+
+
+  // =====================================
+  // LAST SPARK
+  // =====================================
+  {
+    id:"lastSpark",
+    name:"LAST SPARK",
+    image:"LastSpark.png",
+    desc:"LOW HP • DAMAGE -40%",
+    maxLv:1,
+
+    apply(){
+      G.perks.lastSpark++;
+      G.lastSparkEnabled = true;
+    }
+  },
+
+
+  // =====================================
+  // DEMON DICE
+  // =====================================
+  {
+    id:"demonDice",
+    name:"DEMON DICE",
+    image:"DemonDice.png",
+    desc:"50% +5 SCORE • 50% DEFEAT",
+    maxLv:1,
+
+    apply(){
+      G.perks.demonDice++;
+
+      if(Math.random() < 0.5){
+        G.score += 5;
+        updateHUD();
+
+        showItemNotice(
+          "DEMON DICE JACKPOT! +5 SCORE",
+          "#ff4d6d"
+        );
+
+        return "jackpot";
+      }
+
+      return "defeat";
+    }
+  },
+
+
+  // =====================================
+  // LIFE ELIXIR
+  // LV.1 +2 / LV.4 +5 ทุก 10 วินาที
+  // =====================================
+  {
+    id:"lifeElixir",
+    name:"LIFE ELIXIR",
+    image:"LifeElixir.png",
+    desc:"RESTORE HP EVERY 10 SEC",
+    maxLv:4,
+
+    apply(){
+      G.perks.lifeElixir++;
+
+      G.lifeElixirHeal =
+        Math.min(
+          5,
+          G.perks.lifeElixir + 1
+        );
+
+      G.lifeElixirTimerMs = 0;
+    }
   }
 
 ];
@@ -2905,8 +3100,23 @@ const PERK_CARDS = [
 
 function getRandomPerkCards(){
 
+  // Perk ที่มี maxLv และเต็มแล้ว
+  // จะไม่ถูกสุ่มขึ้นมาอีก
   const pool =
-    [...PERK_CARDS];
+    PERK_CARDS.filter(
+      perk => {
+
+        if(!Number.isFinite(perk.maxLv)){
+          return true;
+        }
+
+        const currentLv =
+          G.perks[perk.id] || 0;
+
+        return currentLv < perk.maxLv;
+
+      }
+    );
 
 
   // Fisher-Yates Shuffle
@@ -3082,8 +3292,21 @@ function choosePerk(
   }
 
 
+  // กันเลือก Perk ที่เต็มเลเวลแล้ว
+  const currentLv =
+    G.perks[perk.id] || 0;
+
+  if(
+    Number.isFinite(perk.maxLv) &&
+    currentLv >= perk.maxLv
+  ){
+    return;
+  }
+
+
   // เปิด Effect
-  perk.apply();
+  const perkResult =
+    perk.apply();
 
 
   G.perkChoicesTaken++;
@@ -3103,17 +3326,47 @@ function choosePerk(
     );
 
 
-  showItemNotice(
+  // DEMON DICE ฝั่งแพ้
+  // เป็น INSTANT DEFEAT จึงไม่ใช้ SECOND DAWN ช่วย
+  if(perkResult === "defeat"){
 
-    perk.name +
-    "  LV." +
-    G.perks[
-      perk.id
-    ],
+    showItemNotice(
+      "DEMON DICE CURSE!",
+      "#ff3355"
+    );
 
-    "#f5c518"
+    G.inQ = false;
 
-  );
+    setTimeout(
+      ()=>{
+        doLose(
+          "DEMON DICE... ดวงไม่เข้าข้างคุณ"
+        );
+      },
+      250
+    );
+
+    return;
+  }
+
+
+  // DEMON DICE ฝั่ง JACKPOT
+  // มีข้อความของตัวเองอยู่แล้ว
+  if(perkResult !== "jackpot"){
+
+    showItemNotice(
+
+      perk.name +
+      "  LV." +
+      G.perks[
+        perk.id
+      ],
+
+      "#f5c518"
+
+    );
+
+  }
 
 
   // ถ้าข้างหลังยังมีหน้าคำถาม
@@ -3231,6 +3484,9 @@ const P={
 
   hurtT:0,
   stunT:0,
+
+  // RABBIT SOUL
+  airJumpsLeft:0,
 
 // =====================================
 // CHARACTER PASSIVE SPEED
@@ -10454,17 +10710,54 @@ const moveSpeed =
 
   const jNow = isJ();
 
+  // =====================================================
+  // RABBIT SOUL - DOUBLE JUMP
+  // =====================================================
+
+  if(P.onGround){
+    P.airJumpsLeft =
+      G.doubleJumpEnabled
+        ? 1
+        : 0;
+  }
+
   // ตอน stun ห้ามกระโดด
   if(
     P.stunT === 0 &&
     jNow &&
-    !jumpWas &&
-    P.onGround
+    !jumpWas
   ){
-    P.vy =
-  JUMP_F *
-  G.jumpMul;
-    P.onGround = false;
+
+    // กระโดดจากพื้น
+    if(P.onGround){
+
+      P.vy =
+        JUMP_F *
+        G.jumpMul;
+
+      P.onGround = false;
+
+    }
+
+    // กระโดดครั้งที่ 2 กลางอากาศ
+    else if(
+      G.doubleJumpEnabled &&
+      P.airJumpsLeft > 0
+    ){
+
+      P.vy =
+        JUMP_F *
+        G.jumpMul;
+
+      P.airJumpsLeft--;
+
+      showItemNotice(
+        "RABBIT SOUL - DOUBLE JUMP!",
+        "#ffd6ef"
+      );
+
+    }
+
   }
 
   jumpWas = jNow;
@@ -10892,7 +11185,14 @@ else{
 P.vx = 0;
 P.vy = 0;
     updateHUD();
-    if(G.hp<=0)doLose('พลังชีวิตหมด! คุณแพ้...');
+
+    if(G.hp<=0){
+
+      if(!trySecondDawn()){
+        doLose('พลังชีวิตหมด! คุณแพ้...');
+      }
+
+    }
   }
 
   P.state=!P.onGround?'jump':Math.abs(P.vx)>0.4?'run':'idle';
@@ -11010,6 +11310,132 @@ function showDamageText(dmg){
 
 
 // =====================================================
+// NEW PERK HELPERS
+// =====================================================
+
+function isBossMonster(m){
+
+  if(!m){
+    return false;
+  }
+
+  return (
+    m.isBoss === true ||
+    m.isFinalBoss === true ||
+    m.enemyKind === "forestBoss" ||
+    m.enemyKind === "frostBoss"
+  );
+
+}
+
+
+// DEVIL'S CONTRACT
+function getMonsterQuestionNeed(m){
+
+  if(
+    G.devilsContract &&
+    !isBossMonster(m)
+  ){
+    return 1;
+  }
+
+  if(Number.isFinite(m.quizNeed)){
+    return m.quizNeed;
+  }
+
+  if(Number.isFinite(m.answersNeeded)){
+    return m.answersNeeded;
+  }
+
+  return m.lv || 1;
+
+}
+
+
+// MIND GUARD
+function tryMindGuard(){
+
+  if(G.mindGuardChance <= 0){
+    return false;
+  }
+
+  if(
+    Math.random() <
+    G.mindGuardChance
+  ){
+
+    showItemNotice(
+      "MIND GUARD BLOCK!",
+      "#ff9fe5"
+    );
+
+    return true;
+  }
+
+  return false;
+}
+
+
+// LAST SPARK
+function applyLastSparkDamage(dmg){
+
+  if(
+    G.lastSparkEnabled &&
+    G.maxHp > 0 &&
+    G.hp / G.maxHp <= 0.25
+  ){
+
+    return Math.max(
+      1,
+      Math.ceil(
+        dmg * 0.60
+      )
+    );
+  }
+
+  return dmg;
+}
+
+
+// SECOND DAWN
+function trySecondDawn(){
+
+  if(
+    !G.secondDawnReady ||
+    G.secondDawnUsed
+  ){
+    return false;
+  }
+
+  G.secondDawnUsed = true;
+  G.secondDawnReady = false;
+
+  G.score -= 5;
+
+  // เกิดใหม่ด้วย HP เต็มตาม Max HP ปัจจุบัน
+  G.hp =
+    Math.max(
+      1,
+      G.maxHp
+    );
+
+  P.hurtT = 90;
+  P.stunT = 0;
+  P.vx = 0;
+  P.vy = 0;
+
+  updateHUD();
+
+  showItemNotice(
+    "SECOND DAWN! REVIVE • SCORE -5",
+    "#fff1a8"
+  );
+
+  return true;
+}
+
+
+// =====================================================
 // NORMAL PLAYER DAMAGE
 // =====================================================
 
@@ -11053,6 +11479,12 @@ dmg =
     G.damageReduction
   );
 
+// LAST SPARK
+dmg =
+  applyLastSparkDamage(
+    dmg
+  );
+
   G.hp =
     Math.max(
       0,
@@ -11070,9 +11502,15 @@ dmg =
   updateHUD();
 
   if(G.hp <= 0){
-    doLose(
-      'พลังชีวิตหมด! คุณแพ้...'
-    );
+
+    if(!trySecondDawn()){
+
+      doLose(
+        'พลังชีวิตหมด! คุณแพ้...'
+      );
+
+    }
+
   }
 
   return true;
@@ -11086,6 +11524,12 @@ dmg =
 
 function damagePlayerDirect(dmg){
 
+  // LAST SPARK
+  dmg =
+    applyLastSparkDamage(
+      dmg
+    );
+
   G.hp =
     Math.max(
       0,
@@ -11098,9 +11542,13 @@ function damagePlayerDirect(dmg){
 
   if(G.hp <= 0){
 
-    doLose(
-      'พลังชีวิตหมด! คุณแพ้...'
-    );
+    if(!trySecondDawn()){
+
+      doLose(
+        'พลังชีวิตหมด! คุณแพ้...'
+      );
+
+    }
 
   }
 
@@ -13494,18 +13942,38 @@ function killMonster(m){
   // ถ้าคำตอบที่ใช้ส้ม x2
   // รางวัลของมอนสเตอร์นี้เป็น 2
 
+  // DEVIL'S CONTRACT:
+  // มอนธรรมดาให้คะแนนเท่ากับ Lv.
+  const baseReward =
+
+    (
+      G.devilsContract &&
+      !isBossMonster(m)
+    )
+
+    ?
+
+    Math.max(
+      1,
+      m.lv || 1
+    )
+
+    :
+
+    1;
+
+
   const reward =
 
     m.doubleRewardPending
 
     ?
 
-    2
+    baseReward * 2
 
     :
 
-    1;
-
+    baseReward;
 
 
   G.score +=
@@ -13517,7 +13985,8 @@ function killMonster(m){
 // =====================================
 
 if(
-  G.killHeal > 0
+  G.killHeal > 0 &&
+  !G.devilsContract
 ){
 
   const oldHp =
@@ -16524,6 +16993,16 @@ const FRUIT_TYPES = {
 
     effect(){
 
+      if(G.devilsContract){
+
+        showItemNotice(
+          "DEVIL'S CONTRACT - HEAL BLOCKED",
+          "#ff3355"
+        );
+
+        return;
+      }
+
       G.hp =
   Math.min(
     G.maxHp,
@@ -17084,23 +17563,34 @@ function updateHeartDrops(){
           // +5 HP
           // แต่ไม่เกิน 100
 
-G.hp =
-  Math.min(
-    G.maxHp,
-    G.hp + 5
+if(G.devilsContract){
+
+  showItemNotice(
+    "DEVIL'S CONTRACT - HEAL BLOCKED",
+    "#ff3355"
   );
 
+}else{
 
-          updateHUD();
+  G.hp =
+    Math.min(
+      G.maxHp,
+      G.hp + 5
+    );
 
 
-          showItemNotice(
+  updateHUD();
 
-            "HEART +5 HP",
 
-            "#ff6b81"
+  showItemNotice(
 
-          );
+    "HEART +5 HP",
+
+    "#ff6b81"
+
+  );
+
+}
 
 
           spawnParts(
@@ -18044,6 +18534,62 @@ function updateItemEffects(){
 
 
 
+  // =====================================================
+  // LIFE ELIXIR
+  // ทุก 10 วินาที Heal ตาม Lv.
+  // DEVIL'S CONTRACT จะบล็อกการ Heal
+  // =====================================================
+
+  if(
+    G.lifeElixirHeal > 0
+  ){
+
+    G.lifeElixirTimerMs +=
+      delta;
+
+    if(
+      G.lifeElixirTimerMs >=
+      10000
+    ){
+
+      G.lifeElixirTimerMs -=
+        10000;
+
+      if(
+        !G.devilsContract &&
+        G.hp < G.maxHp
+      ){
+
+        const oldHp =
+          G.hp;
+
+        G.hp =
+          Math.min(
+            G.maxHp,
+            G.hp +
+            G.lifeElixirHeal
+          );
+
+        updateHUD();
+
+        if(G.hp > oldHp){
+
+          showItemNotice(
+            "LIFE ELIXIR +" +
+            (G.hp - oldHp) +
+            " HP",
+            "#ff6b6b"
+          );
+
+        }
+
+      }
+
+    }
+
+  }
+
+
   if(
     P.speedBoostMs > 0
   ){
@@ -18198,9 +18744,9 @@ function triggerQ(m){
 
 
   const need =
-    Number.isFinite(m.quizNeed)
-      ? m.quizNeed
-      : m.lv;
+    getMonsterQuestionNeed(
+      m
+    );
 
 
   const correct =
@@ -18227,8 +18773,46 @@ function triggerQ(m){
   G.inQ = true;
   G.curMonster = m;
   G.wrongCnt = 0;G.curMonster=m;G.wrongCnt=0;
-  const lvKey=m.lv===1?'easy':m.lv===2?'mid':m.lv===3?'hard':'expert';
-const pool=QS[lvKey];
+  // ==========================================
+// QUESTION LEVEL POOL
+// Lv.1 = EASY
+// Lv.2 = MID
+// Lv.3 = HARD + EXPERT
+// Lv.4 = EXPERT
+// ==========================================
+
+let lvKey;
+let pool;
+
+if(m.lv === 1){
+
+  lvKey = "easy";
+  pool = QS.easy;
+
+}
+else if(m.lv === 2){
+
+  lvKey = "mid";
+  pool = QS.mid;
+
+}
+else if(m.lv === 3){
+
+  // Lv.3 สุ่มได้ทั้ง HARD และ EXPERT
+  lvKey = "hard";
+
+  pool = [
+    ...QS.hard,
+    ...QS.expert
+  ];
+
+}
+else{
+
+  lvKey = "expert";
+  pool = QS.expert;
+
+}
 
 if(G.usedQ[lvKey].length>=pool.length){
   G.usedQ[lvKey]=[];
@@ -18268,9 +18852,9 @@ G.usedQ[lvKey].push(G.curQ);
   document.getElementById('q-fb').className='';
   document.getElementById('q-hint').textContent='';
   const quizNeed =
-  Number.isFinite(m.quizNeed)
-    ? m.quizNeed
-    : m.lv;
+    getMonsterQuestionNeed(
+      m
+    );
 
 const quizCorrect =
   Number.isFinite(m.quizCorrect)
@@ -18694,17 +19278,29 @@ G.nextQuestionDouble =
     );
 
 
-    if(normalDoubleUsed){
+    // แสดงคะแนนที่จะได้จริง
+    // DEVIL'S CONTRACT = ได้เท่ากับ Lv. ของมอน
+    const previewBaseReward =
+      (
+        G.devilsContract &&
+        G.curMonster &&
+        !isBossMonster(G.curMonster)
+      )
+        ? Math.max(
+            1,
+            G.curMonster.lv || 1
+          )
+        : 1;
 
-      fb.textContent =
-        '✓ ถูกต้อง! BONUS x2';
+    const previewReward =
+      normalDoubleUsed
+        ? previewBaseReward * 2
+        : previewBaseReward;
 
-    }else{
-
-      fb.textContent =
-        '✓ ถูกต้อง! +1 คะแนน';
-
-    }
+    fb.textContent =
+      '✓ ถูกต้อง! +' +
+      previewReward +
+      ' คะแนน';
 
 
     fb.className =
@@ -18758,11 +19354,9 @@ G.curQ = null;
 // =====================================================
 
 const need =
-  Number.isFinite(
-    answeredMonster.answersNeeded
-  )
-    ? answeredMonster.answersNeeded
-    : answeredMonster.lv;
+  getMonsterQuestionNeed(
+    answeredMonster
+  );
 
 
 // =====================================================
@@ -18925,18 +19519,43 @@ setTimeout(
     // เลือกระดับคำถาม
     // =========================================
 
-    const lvKey =
-      answeredMonster.lv === 1
-        ? "easy"
-        : answeredMonster.lv === 2
-          ? "mid"
-          : answeredMonster.lv === 3
-            ? "hard"
-            : "expert";
+// ==========================================
+// NEXT QUESTION LEVEL POOL
+// Lv.3 ใช้ HARD + EXPERT
+// ==========================================
 
+let lvKey;
+let pool;
 
-    const pool =
-      QS[lvKey];
+if(answeredMonster.lv === 1){
+
+  lvKey = "easy";
+  pool = QS.easy;
+
+}
+else if(answeredMonster.lv === 2){
+
+  lvKey = "mid";
+  pool = QS.mid;
+
+}
+else if(answeredMonster.lv === 3){
+
+  // Lv.3 สุ่มได้ทั้ง HARD และ EXPERT
+  lvKey = "hard";
+
+  pool = [
+    ...QS.hard,
+    ...QS.expert
+  ];
+
+}
+else{
+
+  lvKey = "expert";
+  pool = QS.expert;
+
+}
 
 
     if(
@@ -19139,8 +19758,20 @@ if(
     inp.classList.add('bad');
     playWrongSound();
     setTimeout(()=>{inp.classList.remove('bad');inp.value='';inp.focus();},350);
-    hurtP(14);
-    fb.textContent='✕ ผิด! -14 พลังชีวิต';fb.className='bad';
+
+    const mindGuardBlocked =
+      tryMindGuard();
+
+    if(!mindGuardBlocked){
+      hurtP(14);
+    }
+
+    fb.textContent =
+      mindGuardBlocked
+        ? '✕ ผิด! MIND GUARD ป้องกัน Damage'
+        : '✕ ผิด! -14 พลังชีวิต';
+
+    fb.className='bad';
     const left=3-G.wrongCnt;
     if(G.wrongCnt>=3){
       hint.textContent='เฉลย: "'+G.curQ.a+'"';
@@ -19211,7 +19842,12 @@ if(
   document.getElementById('q-popup').classList.remove('show');
   G.curMonster.x+=200; // ดันมอนสเตอร์ออกไป
   G.curMonster.chasing=false;
-  hurtP(8); // เสีย HP นิดหน่อยเมื่อหนี
+
+  // MIND GUARD มีโอกาสกัน Damage ตอนหนี
+  if(!tryMindGuard()){
+    hurtP(8);
+  }
+
   G.inQ=false;
   G.curMonster=null;
 }
@@ -19588,7 +20224,15 @@ G.perks = {
   magnet:0,
   star:0,
   shield:0,
-  goldHeart:0
+  goldHeart:0,
+
+  secondDawn:0,
+  mindGuard:0,
+  rabbitSoul:0,
+  devilsContract:0,
+  lastSpark:0,
+  demonDice:0,
+  lifeElixir:0
 };
 
 
@@ -19603,6 +20247,23 @@ G.correctScoreBonus = 0;
 G.shieldCharges = 0;
 
 G.killHeal = 0;
+
+
+// NEW PERK RESET
+G.secondDawnReady = false;
+G.secondDawnUsed = false;
+
+G.mindGuardChance = 0;
+
+G.doubleJumpEnabled = false;
+P.airJumpsLeft = 0;
+
+G.devilsContract = false;
+
+G.lastSparkEnabled = false;
+
+G.lifeElixirHeal = 0;
+G.lifeElixirTimerMs = 0;
 
   G.itemClock=
     performance.now();
