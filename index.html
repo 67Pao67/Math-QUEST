@@ -32385,14 +32385,16 @@ function startGame(){
   document.getElementById('boss-screen')
     .classList.remove('show');
 
-  // แสดง HUD
-  document.getElementById('hud').style.display='flex';
+// แสดง HUD
+document.getElementById('hud').style.display='flex';
 
-  // แสดงปุ่มสัมผัสเฉพาะ iPad / โทรศัพท์
-  updateMobileControlsVisibility();
+// ต้องเปิดเกมก่อน
+G.running=true;
 
-  G.running=true;
-  G.score=0;
+// แล้วค่อยเช็กปุ่มสัมผัส
+updateMobileControlsVisibility();
+
+G.score=0;
 // =====================================================
 // CHARACTER PASSIVES
 // =====================================================
